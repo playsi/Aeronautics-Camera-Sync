@@ -1,0 +1,13 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.playsi.aero_cam_sync.client.mixins",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [],
+  "client": [
+    "CameraMixin"
+  ],
+  "injectors": {
+    "defaultRequireValue": 1
+  }
+}

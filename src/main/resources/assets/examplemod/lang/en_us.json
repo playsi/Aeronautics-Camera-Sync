@@ -1,0 +1,12 @@
+{
+  "aero_cam_sync.configuration.title": "Aeronautics Camera Sync Mod Configs",
+  "aero_cam_sync.configuration.section.aero_cam_sync.common.toml": "Aeronautics Camera Sync Mod Configs",
+  "aero_cam_sync.configuration.section.aero_cam_sync.common.toml.title": "Aeronautics Camera Sync Mod Configs",
+
+  "aero_cam_sync.config.enabled": "Enable mod",
+  "aero_cam_sync.config.enabled.tooltip": "Enables or disables camera tilt",
+
+  "aero_cam_sync.config.minNormalY": "Max tilt",
+  "aero_cam_sync.config.minNormalY.tooltip": "How flat a surface must be to apply camera tilt (0.0 = any angle, 1.0 = perfectly flat)"
+
+}

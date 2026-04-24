@@ -1,0 +1,116 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'net.neoforged.gradle.userdev' version '7.1.25'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+version = mod_version
+group = mod_group_id
+
+sourceSets.main.resources {
+    srcDir('src/generated/resources')
+
+    exclude("**/*.bbmodel")
+    exclude("src/generated/**/.cache")
+}
+
+repositories {
+    maven { url = "https://maven.createmod.net" }
+    maven { url = "https://api.modrinth.com/maven"}
+    maven { url = "https://maven.ryanhcode.dev/releases"}
+}
+
+base {
+    archivesName = mod_id
+}
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+runs {
+    configureEach {
+        systemProperty 'forge.logging.markers', 'REGISTRIES'
+        systemProperty 'forge.logging.console.level', 'debug'
+
+        modSource project.sourceSets.main
+    }
+
+    client {
+        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+    }
+
+    server {
+        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        argument '--nogui'
+    }
+
+    gameTestServer {
+        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+    }
+
+    data {
+        arguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
+    }
+}
+
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
+dependencies {
+    implementation "net.neoforged:neoforge:${neo_version}"
+
+    //create
+    implementation("com.simibubi.create:create-${minecraft_version}:${create_version}") { transitive = false }
+
+    //ponder
+    implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
+
+    //flywheel
+    compileOnly "dev.engine-room.flywheel:flywheel-neoforge-api-${minecraft_version}:${flywheel_version}"
+    runtimeOnly "dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}"
+
+    // Create Aeronautics
+    compileOnly "maven.modrinth:create-aeronautics:${aeronautics_version}"
+    runtimeOnly "maven.modrinth:create-aeronautics:${aeronautics_version}"
+
+    //extracted from create aeronautics (JarInJar)
+    compileOnly files('libs/dev.eriksonn.aeronautics.aeronautics-neoforge-1.21.1-1.1.3.jar')
+    compileOnly files('libs/dev.ryanhcode.offroad.offroad-neoforge-1.21.1-1.1.3.jar')
+    compileOnly files('libs/dev.simulated_team.simulated.simulated-neoforge-1.21.1-1.1.3.jar')
+
+    compileOnly("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version}")
+
+    api("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:$sable_version") {
+        exclude group: "foundry.veil"
+        exclude group: "com.tterrag.registrate"
+    }
+
+
+    tasks.withType(ProcessResources).configureEach {
+        var replaceProperties = [
+                minecraft_version      : minecraft_version,
+                minecraft_version_range: minecraft_version_range,
+                neo_version            : neo_version,
+                loader_version_range   : loader_version_range,
+                mod_id                 : mod_id,
+                mod_name               : mod_name,
+                mod_license            : mod_license,
+                mod_version            : mod_version,
+        ]
+        inputs.properties replaceProperties
+
+        filesMatching(['META-INF/neoforge.mods.toml']) {
+            expand replaceProperties
+        }
+    }
+
+    idea {
+        module {
+            downloadSources = true
+            downloadJavadoc = true
+        }
+    }
+}
