@@ -41,4 +41,6 @@ public abstract class CameraMixin {
         updateSmoothedTilt(surfaceNormal);
         applyTiltToCamera((Camera) (Object) this);
     }
+
+    //TODO задержка камеры
 }

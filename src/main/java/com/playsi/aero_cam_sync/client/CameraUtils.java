@@ -130,4 +130,8 @@ public class CameraUtils {
     private static Quaternionf toQuaternionf(Quaterniondc q) {
         return new Quaternionf((float) q.x(), (float) q.y(), (float) q.z(), (float) q.w());
     }
+
+    public static Quaternionf getSmoothedTilt() {
+        return new Quaternionf(smoothedTilt);
+    }
 }
