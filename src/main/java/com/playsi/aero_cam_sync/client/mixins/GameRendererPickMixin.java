@@ -1,7 +1,7 @@
 package com.playsi.aero_cam_sync.client.mixins;
 
 import com.playsi.aero_cam_sync.client.Config;
-import com.playsi.aero_cam_sync.client.CameraUtils;
+import com.playsi.aero_cam_sync.client.utils.CameraUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.entity.Entity;

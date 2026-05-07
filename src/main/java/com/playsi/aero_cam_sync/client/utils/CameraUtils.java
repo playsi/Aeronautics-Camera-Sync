@@ -1,5 +1,7 @@
-package com.playsi.aero_cam_sync.client;
+package com.playsi.aero_cam_sync.client.utils;
 
+import com.playsi.aero_cam_sync.client.Config;
+import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.ClientSubLevel;
@@ -12,6 +14,7 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import org.checkerframework.checker.units.qual.C;
 import org.joml.Quaterniondc;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -20,7 +23,7 @@ public class CameraUtils {
     private static final float PLAYER_HALF_WIDTH = 0.3f;
 
     private static final float RAYCAST_OFFSET_UP   =  0.1f;
-    private static final float RAYCAST_OFFSET_DOWN = -2.5f;
+    private static final float RAYCAST_OFFSET_DOWN = - Config.RAYCAST_DOWN_LENGTH.get().floatValue();
 
     /** Текущий сглаженный тилт (identity = нет наклона). Живёт между кадрами. */
     private static final Quaternionf smoothedTilt = new Quaternionf(); // identity
@@ -52,10 +55,18 @@ public class CameraUtils {
                 feet.add(-PLAYER_HALF_WIDTH, 0, -PLAYER_HALF_WIDTH),
         };
 
+        DebugRayRenderer.clear();
+
         Vector3f averaged = new Vector3f();
         int validCount = 0;
 
         for (Vec3 origin : origins) {
+            Vec3 from = origin.add(0, RAYCAST_OFFSET_UP,   0);
+            Vec3 to   = origin.add(0, RAYCAST_OFFSET_DOWN, 0);
+
+            // Рисуем луч: зелёный = начало, красный = конец
+            DebugRayRenderer.submitRay(from, to, 0.2f, 1f, 0.2f);
+
             BlockHitResult hit = raycastDown(subLevel, player, origin);
             if (hit.getType() == HitResult.Type.MISS) continue;
 

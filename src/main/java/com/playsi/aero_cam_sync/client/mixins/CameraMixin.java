@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.playsi.aero_cam_sync.client.CameraUtils.*;
+import static com.playsi.aero_cam_sync.client.utils.CameraUtils.*;
 
 @Mixin(Camera.class)
 public abstract class CameraMixin {

@@ -1,4 +1,4 @@
-package com.playsi.aero_cam_sync.client;
+package com.playsi.aero_cam_sync.client.utils;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;

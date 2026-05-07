@@ -1,6 +1,7 @@
 package com.playsi.aero_cam_sync.client;
 
 import com.playsi.aero_cam_sync.AeroCamSync;
+import com.playsi.aero_cam_sync.client.utils.KeyBindings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;

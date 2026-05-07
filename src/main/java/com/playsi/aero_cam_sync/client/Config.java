@@ -17,6 +17,17 @@ public class Config {
             .comment("Tilt interpolation speed per frame (0.0 = never moves, 1.0 = instant snap)")
             .defineInRange("smoothSpeed", 0.07, 0.0, 1.0);
 
+    public static final ModConfigSpec.DoubleValue SUBLEVEL_MEMORY_SECONDS = BUILDER
+            .comment("How long (in seconds) to remember the last SubLevel when the player is airborne. Set to 0 to disable.")
+            .defineInRange("subLevelMemorySeconds", 0.5, 0.0, 5.0);
+
+    public static final ModConfigSpec.DoubleValue RAYCAST_DOWN_LENGTH = BUILDER
+            .comment("Distance from player to floor")
+            .defineInRange("fromPlayerToFloor", 2.5, 1.5, 10.0);
+
+    public static final ModConfigSpec.BooleanValue DEBUG_RAYS = BUILDER
+            .comment("Render debug raycasts (disable in production!)")
+            .define("debugRays", false);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 }
