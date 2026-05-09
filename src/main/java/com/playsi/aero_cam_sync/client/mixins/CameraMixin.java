@@ -1,7 +1,7 @@
 package com.playsi.aero_cam_sync.client.mixins;
 
+import com.playsi.aero_cam_sync.AeroCamSync;
 import com.playsi.aero_cam_sync.client.Config;
-import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.ClientSubLevel;
 import net.minecraft.client.Camera;
@@ -10,6 +10,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Invoker;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -30,19 +31,36 @@ public abstract class CameraMixin {
 
         Minecraft mc = Minecraft.getInstance();
         float deltaTime = mc.getTimer().getRealtimeDeltaTicks();
+        boolean onGround = mc.player.onGround();
 
         ClientSubLevel subLevel = getClientSubLevel(mc.player);
 
-        DebugRayRenderer.clear();
-
-        Vector3f surfaceNormal = null;
-
         if (subLevel != null) {
-            Pose3dc pose = subLevel.renderPose(partialTick);
-            surfaceNormal = getSurfaceNormal(subLevel, pose);
+            AeroCamSync.LOGGER.info(subLevel.toString());
         }
 
+        // Нет сабвела — игрок на обычном мире, плавно возвращаемся к identity
+        if (subLevel == null) {
+            updateSmoothedTilt(null, deltaTime, false);
+            applyTiltToCamera((Camera) (Object) this);
+            return;
+        }
+
+        // Игрок в воздухе над сабвелом — замораживаем тилт (не рейкастим)
+//        if (!onGround) {
+//            updateSmoothedTilt(null, deltaTime, true); // freeze = true
+//            applyTiltToCamera((Camera) (Object) this);
+//            return;
+//        }
+
+        // Игрок на сабвеле и на земле — считаем нормаль
+        Pose3dc pose = subLevel.renderPose(partialTick);
+        Vector3f surfaceNormal = getSurfaceNormal(subLevel, pose);
+
+        // surfaceNormal == null если все лучи промахнулись — плавно к identity
         updateSmoothedTilt(surfaceNormal, deltaTime, false);
-        applyTiltToCamera((Camera)(Object) this, partialTick);
+        applyTiltToCamera((Camera) (Object) this);
     }
+
+    //TODO задержка камеры
 }
