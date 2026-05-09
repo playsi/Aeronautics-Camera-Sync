@@ -1,6 +1,7 @@
 package com.playsi.aero_cam_sync.client;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
+import org.apache.logging.log4j.core.util.NameUtil;
 
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
@@ -14,8 +15,8 @@ public class Config {
             .defineInRange("minNormalY", 0.5, 0.0, 1.0);
 
     public static final ModConfigSpec.DoubleValue SMOOTH_SPEED = BUILDER
-            .comment("Tilt interpolation speed per frame (0.0 = never moves, 1.0 = instant snap)")
-            .defineInRange("smoothSpeed", 0.07, 0.0, 1.0);
+            .comment("Tilt interpolation speed per frame (9999 = never moves, 0.0 = instant snap)")
+            .defineInRange("smoothSpeed", 1.7, 0.0, 9999.0);
 
     public static final ModConfigSpec.DoubleValue SUBLEVEL_MEMORY_SECONDS = BUILDER
             .comment("How long (in seconds) to remember the last SubLevel when the player is airborne. Set to 0 to disable.")
@@ -23,11 +24,20 @@ public class Config {
 
     public static final ModConfigSpec.DoubleValue RAYCAST_DOWN_LENGTH = BUILDER
             .comment("Distance from player to floor")
-            .defineInRange("fromPlayerToFloor", 2.5, 1.5, 10.0);
+            .defineInRange("fromPlayerToFloor", 5.0, 0.1, 12.0);
 
     public static final ModConfigSpec.BooleanValue DEBUG_RAYS = BUILDER
             .comment("Render debug raycasts (disable in production!)")
             .define("debugRays", false);
+
+    public static final ModConfigSpec.BooleanValue ALLOW_3RD_PERSON = BUILDER
+            .comment("ALLOW IN 3RD FACE")
+            .define("allow3rdPerson", false);
+
+    public static final ModConfigSpec.IntValue RAYCAST_COUNT = BUILDER
+            .comment("Counts of raycasts")
+            .defineInRange("10 is enough", 10, 1, 10000);
+
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 }
