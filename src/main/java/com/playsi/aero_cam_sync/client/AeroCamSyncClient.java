@@ -37,7 +37,6 @@ public class AeroCamSyncClient {
         AeroCamSync.LOGGER.info("{} Initialized!", MODID);
     }
 
-    /** Проверяем нажатие каждый тик. */
     @SubscribeEvent
     static void onClientTick(ClientTickEvent.Pre event) {
         while (KeyBindings.TOGGLE.consumeClick()) {
