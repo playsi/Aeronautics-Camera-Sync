@@ -3,8 +3,9 @@ Adds dynamic camera rotation synced with moving contraptions from [Create Aerona
 
 ## Preview
 
-![comparison](https://github.com/playsi/Aeronautics-Camera-Sync/blob/master/promo/sync.gif?raw=true)
+![comparison](https://github.com/playsi/Aeronautics-Camera-Sync/blob/master/promo/on_the_airship.gif?raw=true)
 
+![comparison](https://github.com/playsi/Aeronautics-Camera-Sync/blob/master/promo/off_the_airship.gif?raw=true)
 ## Description
 **Aeronautics Camera Sync** enhances immersion by synchronizing the player’s camera with the rotation of moving contraptions.
 
