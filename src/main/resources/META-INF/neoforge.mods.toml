@@ -34,9 +34,9 @@ config="${mod_id}.mixins.json"
     side="BOTH"
 
 [[dependencies.${mod_id}]]
-modId="aeronautics_bundled"
-type="required"
-versionRange="[1.1.3,)"
-ordering="AFTER"
-side="BOTH"
+    modId="sable"
+    type="required"
+    versionRange="[1.1.1,)"
+    ordering="AFTER"
+    side="BOTH"
 
