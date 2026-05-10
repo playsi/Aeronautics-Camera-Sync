@@ -44,7 +44,6 @@ public class AeroCamSyncClient {
             boolean newValue = !Config.MOD_ENABLED.get();
             Config.MOD_ENABLED.set(newValue);
 
-            // Показываем ActionBar-сообщение игроку
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null) {
                 String msgKey = newValue ? "msg.aero_cam_sync.enabled" : "msg.aero_cam_sync.disabled";
