@@ -22,6 +22,8 @@ import org.joml.Quaternionf;
 import org.joml.Vector3d;
 import org.joml.Vector3f;
 
+import javax.annotation.Nullable;
+
 public class CameraUtils {
 
     // ── кеш последнего известного сабвела ────────────────────────────────────
@@ -30,18 +32,11 @@ public class CameraUtils {
 
     // ── константы рейкастов ───────────────────────────────────────────────────
 
-    private static int   RAY_COUNT          = 10; // 10 минимум, более 10000 лаги
     private static final float RAY_RADIUS         = 0.58f;
-    private static float RAYCAST_OFFSET_UP  = Config.RAYCAST_UP_LENGTH.get().floatValue();
-    private static final float RAYCAST_LENGTH     = Config.MIN_NORMAL_Y.get().floatValue();
 
-    private static float raycastOffsetDown() {
-        return -Config.RAYCAST_DOWN_LENGTH.get().floatValue(); // зависит от скейла игрока
-    }
-
-    private static float raycastOffsetUp() {
-        return Config.RAYCAST_UP_LENGTH.get().floatValue();
-    }
+    private static int rayCount() { return Config.RAYCAST_COUNT.get(); }
+    private static float offsetUp() { return Config.RAYCAST_UP_LENGTH.get().floatValue(); }
+    private static float offsetDown() { return -Config.RAYCAST_DOWN_LENGTH.get().floatValue(); }
 
     // ── сглаженный тилт (живёт между кадрами) ────────────────────────────────
 
@@ -76,18 +71,14 @@ public class CameraUtils {
         SubLevel subLevel = Sable.HELPER.getTrackingOrVehicleSubLevel(player);
 
         if (subLevel != null) {
-            // Игрок стоит/едет на сабвеле — обновляем кеш
             cacheSub = subLevel instanceof ClientSubLevel csl ? csl : null;
             return cacheSub;
         }
 
         if (player.onGround()) {
-            // Приземлился на обычный мир — сбрасываем кеш
             cacheSub = null;
             return null;
         }
-
-        // Игрок в воздухе (прыжок) — держим кеш
         return cacheSub;
     }
 
@@ -97,55 +88,51 @@ public class CameraUtils {
      *
      * @return нормаль, или {@code null} если ни один луч не попал
      */
-    public static Vector3f getSurfaceNormal(ClientSubLevel subLevel, Pose3dc pose) {
+    public static @Nullable Vector3f getSurfaceNormal(ClientSubLevel subLevel, Pose3dc pose) {
         LocalPlayer player = Minecraft.getInstance().player;
-        assert player != null;
+        if (player == null) return null;
 
-        Vec3 feet = player.position();
-
-        RAY_COUNT = Config.RAYCAST_COUNT.get();
-
-        // Центр + 8 точек по кругу
-        Vec3[] origins = new Vec3[RAY_COUNT + 1];
-        origins[0] = feet;
-        for (int i = 0; i < RAY_COUNT; i++) {
-            double angle = 2 * Math.PI * i / RAY_COUNT;
-            origins[i + 1] = feet.add(
-                    Math.cos(angle) * RAY_RADIUS,
-                    0,
-                    Math.sin(angle) * RAY_RADIUS
-            );
-        }
-
-        DebugRayRenderer.clear();
-
-        Vector3f averaged = new Vector3f();
-        int validCount = 0;
+        Vec3[] origins = buildRayOrigins(player.position());
+        Vector3f sum   = new Vector3f();
+        int hits       = 0;
 
         for (Vec3 origin : origins) {
-            Vec3 from = origin.add(0, raycastOffsetUp(),    0);
-            Vec3 to   = origin.add(0, raycastOffsetDown(),  0);
-
             BlockHitResult hit = raycastDown(subLevel, player, origin);
 
-            boolean missed = hit.getType() == HitResult.Type.MISS;
-            float r = missed ? 1f : 0.2f;
-            float g = missed ? 0.2f : 1f;
-            DebugRayRenderer.submitRay(from, to, r, g, 0.2f);
+            recordDebugRay(origin, hit);
 
-            if (missed) continue;
+            if (hit.getType() == HitResult.Type.MISS) continue;
 
-            Vector3f localNormal  = directionToVector(hit.getDirection());
-            Vector3f worldNormal  = transformToWorldSpace(localNormal, pose.orientation());
-
+            Vector3f worldNormal = toWorldNormal(hit.getDirection(), pose.orientation());
             if (!isSurfaceNearlyFlat(worldNormal)) continue;
 
-            averaged.add(worldNormal);
-            validCount++;
+            sum.add(worldNormal);
+            hits++;
         }
 
-        if (validCount == 0) return null;
-        return averaged.div(validCount).normalize();
+        return hits > 0 ? sum.div(hits).normalize() : null;
+    }
+
+    private static Vec3[] buildRayOrigins(Vec3 feet) {
+        int count      = rayCount();
+        Vec3[] origins = new Vec3[count + 1];
+        origins[0]     = feet;
+        for (int i = 0; i < count; i++) {
+            double angle  = 2 * Math.PI * i / count;
+            origins[i + 1] = feet.add(Math.cos(angle) * RAY_RADIUS, 0, Math.sin(angle) * RAY_RADIUS);
+        }
+        return origins;
+    }
+
+    private static void recordDebugRay(Vec3 origin, BlockHitResult hit) {
+        boolean missed = hit.getType() == HitResult.Type.MISS;
+        Vec3 from = origin.add(0, offsetUp(),   0);
+        Vec3 to   = origin.add(0, offsetDown(), 0);
+        DebugRayRenderer.submitRay(from, to, missed ? 1f : 0.2f, missed ? 0.2f : 1f, 0.2f);
+    }
+
+    private static Vector3f toWorldNormal(Direction direction, Quaterniondc orientation) {
+        return transformToWorldSpace(directionToVector(direction), orientation);
     }
 
     /**
@@ -172,42 +159,48 @@ public class CameraUtils {
      */
     public static void applyTiltToCamera(Camera camera, float partialTick) {
         if (Config.MODIFY_CAMERA_ROT.get()) {
-            Quaternionf tilt = new Quaternionf(smoothedTilt);
-            Quaternionf vanilla = new Quaternionf(camera.rotation());
-            tilt.mul(vanilla);
-            camera.rotation().set(tilt);
+            applyCameraRotation(camera);
         }
-
         if (Config.MODIFY_CAMERA_POS.get()) {
-            LocalPlayer player = Minecraft.getInstance().player;
-            if (player == null) return;
-
-            double feetX = Mth.lerp(partialTick, player.xOld, player.getX());
-            double feetY = Mth.lerp(partialTick, player.yOld, player.getY());
-            double feetZ = Mth.lerp(partialTick, player.zOld, player.getZ());
-
-            Vec3 vanillaCamPos = camera.getPosition();
-            Vector3f offset = new Vector3f(
-                    (float)(vanillaCamPos.x - feetX),
-                    (float)(vanillaCamPos.y - feetY),
-                    (float)(vanillaCamPos.z - feetZ)
-            );
-
-            new Quaternionf(smoothedTilt).transform(offset);
-
-            camera.setPosition(
-                    feetX + offset.x,
-                    feetY + offset.y,
-                    feetZ + offset.z
-            );
+            applyCameraPosition(camera, partialTick);
         }
     }
+
+    public static void applyCameraRotation(Camera camera) {
+        Quaternionf tilt = new Quaternionf(smoothedTilt);
+        Quaternionf vanilla = new Quaternionf(camera.rotation());
+        tilt.mul(vanilla);
+        camera.rotation().set(tilt);
+    }
+
+    public static void applyCameraPosition(Camera camera, float partialTick) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) return;
+
+        double feetX = Mth.lerp(partialTick, player.xOld, player.getX());
+        double feetY = Mth.lerp(partialTick, player.yOld, player.getY());
+        double feetZ = Mth.lerp(partialTick, player.zOld, player.getZ());
+
+        Vec3 vanillaCamPos = camera.getPosition();
+        Vector3f offset = new Vector3f(
+                (float)(vanillaCamPos.x - feetX),
+                (float)(vanillaCamPos.y - feetY),
+                (float)(vanillaCamPos.z - feetZ)
+        );
+
+        new Quaternionf(smoothedTilt).transform(offset);
+
+        camera.setPosition(
+                feetX + offset.x,
+                feetY + offset.y,
+                feetZ + offset.z
+        );
+    }
+
 
     public static Quaternionf getSmoothedTilt() {
         return new Quaternionf(smoothedTilt);
     }
-
-    // ── private helpers ───────────────────────────────────────────────────────
 
     private static boolean isSurfaceNearlyFlat(Vector3f normal) {
         return normal.y >= Config.MIN_NORMAL_Y.get().floatValue();
@@ -219,9 +212,8 @@ public class CameraUtils {
      * (защита от ложных хитов когда игрок не над сабвелом).
      */
     private static BlockHitResult raycastDown(ClientSubLevel subLevel, LocalPlayer player, Vec3 origin) {
-        RAYCAST_OFFSET_UP = Config.RAYCAST_UP_LENGTH.get().floatValue();
-        Vec3 from = new Vec3(origin.x, origin.y + raycastOffsetUp(),   origin.z);
-        Vec3 to   = new Vec3(origin.x, origin.y + raycastOffsetDown(),  origin.z);
+        Vec3 from = new Vec3(origin.x, origin.y + offsetUp(),   origin.z);
+        Vec3 to   = new Vec3(origin.x, origin.y + offsetDown(),  origin.z);
 
         ClipContext ctx = new ClipContext(
                 from, to,
@@ -234,12 +226,10 @@ public class CameraUtils {
 
         if (result.getType() == HitResult.Type.MISS) return result;
 
-        // Трансформируем точку попадания (локальные coords) в мировые
         Vec3 hitLocal = result.getLocation();
         Vector3d hitWorld = subLevel.logicalPose()
                 .transformPosition(new Vector3d(hitLocal.x, hitLocal.y, hitLocal.z));
 
-        // Проверяем что мировая точка внутри bounding box сабвела
         BoundingBox3dc bounds = subLevel.boundingBox();
         boolean inside = hitWorld.x >= bounds.minX() && hitWorld.x <= bounds.maxX()
                 && hitWorld.y >= bounds.minY() && hitWorld.y <= bounds.maxY()
