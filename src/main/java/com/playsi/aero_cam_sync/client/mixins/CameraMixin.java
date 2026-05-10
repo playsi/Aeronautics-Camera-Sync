@@ -1,6 +1,7 @@
 package com.playsi.aero_cam_sync.client.mixins;
 
 import com.playsi.aero_cam_sync.client.Config;
+import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import dev.ryanhcode.sable.companion.math.Pose3dc;
 import dev.ryanhcode.sable.sublevel.ClientSubLevel;
 import net.minecraft.client.Camera;
@@ -27,20 +28,21 @@ public abstract class CameraMixin {
         if (!Config.MOD_ENABLED.get()) return;
         if (!shouldApplyTilt()) return;
 
-        ClientSubLevel subLevel = getClientSubLevel(Minecraft.getInstance().player);
+        Minecraft mc = Minecraft.getInstance();
+        float deltaTime = mc.getTimer().getRealtimeDeltaTicks();
 
-        if (subLevel == null) {
-            updateSmoothedTilt(null);
-            applyTiltToCamera((Camera) (Object) this);
-            return;
+        ClientSubLevel subLevel = getClientSubLevel(mc.player);
+
+        DebugRayRenderer.clear();
+
+        Vector3f surfaceNormal = null;
+
+        if (subLevel != null) {
+            Pose3dc pose = subLevel.renderPose(partialTick);
+            surfaceNormal = getSurfaceNormal(subLevel, pose);
         }
 
-        Pose3dc pose = subLevel.renderPose(partialTick);
-        Vector3f surfaceNormal = getSurfaceNormal(subLevel, pose);
-
-        updateSmoothedTilt(surfaceNormal);
-        applyTiltToCamera((Camera) (Object) this);
+        updateSmoothedTilt(surfaceNormal, deltaTime, false);
+        applyTiltToCamera((Camera)(Object) this, partialTick);
     }
-
-    //TODO задержка камеры
 }

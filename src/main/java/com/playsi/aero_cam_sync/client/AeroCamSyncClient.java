@@ -37,14 +37,12 @@ public class AeroCamSyncClient {
         AeroCamSync.LOGGER.info("{} Initialized!", MODID);
     }
 
-    /** Проверяем нажатие каждый тик. */
     @SubscribeEvent
     static void onClientTick(ClientTickEvent.Pre event) {
         while (KeyBindings.TOGGLE.consumeClick()) {
             boolean newValue = !Config.MOD_ENABLED.get();
             Config.MOD_ENABLED.set(newValue);
 
-            // Показываем ActionBar-сообщение игроку
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null) {
                 String msgKey = newValue ? "msg.aero_cam_sync.enabled" : "msg.aero_cam_sync.disabled";

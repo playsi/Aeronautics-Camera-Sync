@@ -1,118 +1,103 @@
 package com.playsi.aero_cam_sync.client.mixins;
 
 import com.playsi.aero_cam_sync.client.Config;
-import com.playsi.aero_cam_sync.client.utils.CameraUtils;
+import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
+import dev.ryanhcode.sable.Sable;
+import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import static com.playsi.aero_cam_sync.client.utils.CameraUtils.getSmoothedTilt;
+import static com.playsi.aero_cam_sync.client.utils.CameraUtils.shouldApplyTilt;
+
 @Mixin(GameRenderer.class)
-public class GameRendererPickMixin {
+public abstract class GameRendererPickMixin {
 
-    @Shadow @Final
-    private Minecraft minecraft;
+    @Shadow public abstract void render(DeltaTracker deltaTracker, boolean renderLevel);
 
-    @Inject(method = "pick", at = @At("HEAD"), cancellable = true)
-    private void aero$overridePick(float partialTick, CallbackInfo ci) {
-        if (!Config.MOD_ENABLED.get() || !CameraUtils.shouldApplyTilt()) return;
+    @Inject(method = "pick", at = @At("TAIL"))
+    private void recalculateTiltedPick(float partialTick, CallbackInfo ci) {
+        if (!Config.MOD_ENABLED.get() || !shouldApplyTilt()) return;
+        if (!Config.MODIFY_CAMERA_ROT.get() && !Config.MODIFY_CAMERA_POS.get()) return;
 
-        Entity entity = minecraft.getCameraEntity();
-        if (entity == null || minecraft.level == null || minecraft.player == null) return;
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
+        if (!mc.options.getCameraType().isFirstPerson()) return;
 
-        ci.cancel();
+        Quaternionf tilt = getSmoothedTilt();
+        if (player == null || mc.level == null) return;
 
-        // ── Наклонённый вектор взгляда ──────────────────────────────────────────
-        Vec3 vanilla = entity.getViewVector(partialTick);
-        Vector3f v = new Vector3f((float) vanilla.x, (float) vanilla.y, (float) vanilla.z);
-        CameraUtils.getSmoothedTilt().transform(v);
-        Vec3 tiltedLook = new Vec3(v.x, v.y, v.z).normalize();
+        Vec3 eyes = mc.gameRenderer.getMainCamera().getPosition();
 
-        Vec3 eye = entity.getEyePosition(partialTick);
-        double blockRange  = minecraft.player.blockInteractionRange();
-        double entityRange = minecraft.player.entityInteractionRange();
-        Vec3 blockEnd = eye.add(tiltedLook.scale(blockRange));
+        Vec3 vanillaLook = player.getViewVector(partialTick);
+        Vector3f look = new Vector3f(
+                (float) vanillaLook.x,
+                (float) vanillaLook.y,
+                (float) vanillaLook.z
+        );
+        tilt.transform(look);
+        Vec3 tiltedLook = new Vec3(look.x, look.y, look.z);
 
-        // ── 1. Блоки ────────────────────────────────────────────────────────────
-        // NONE: ванильное поведение — можно кликать сквозь жидкость
-        HitResult blockHit = entity.level().clip(new ClipContext(
-                eye, blockEnd, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, entity));
+        double reach = mc.player.blockInteractionRange();
+        Vec3 endPoint = eyes.add(tiltedLook.scale(reach));
 
-        // SOURCE_ONLY: нужно только если в руке пустое ведро
-        // (полная логика ведра — отдельный миксин, здесь минимально)
-        HitResult fluidHit = null;
-        if (isHoldingEmptyBucket()) {
-            fluidHit = entity.level().clip(new ClipContext(
-                    eye, blockEnd, ClipContext.Block.OUTLINE, ClipContext.Fluid.SOURCE_ONLY, entity));
+        if (Config.DEBUG_PICK_RAYS.get()) {
+            Vec3 vanillaEnd = eyes.add(vanillaLook.scale(reach));
+            DebugRayRenderer.submitPickRay(eyes, vanillaEnd, 0.5f, 0.5f, 0.5f);
+            DebugRayRenderer.submitPickRay(eyes, endPoint, 1.0f, 1.0f, 0.0f);
         }
 
-        double blockDistSq = blockHit.getLocation().distanceToSqr(eye);
-
-        HitResult primaryHit;
-        double primaryDistSq;
-        if (fluidHit != null && fluidHit.getType() != HitResult.Type.MISS) {
-            double fluidDistSq = fluidHit.getLocation().distanceToSqr(eye);
-            if (fluidDistSq <= blockDistSq) {
-                primaryHit    = fluidHit;
-                primaryDistSq = fluidDistSq;
-            } else {
-                primaryHit    = blockHit;
-                primaryDistSq = blockDistSq;
-            }
-        } else {
-            primaryHit    = blockHit;
-            primaryDistSq = blockDistSq;
+        if (!Config.MODIFY_CAMERA_ROT.get() && Config.MODIFY_CAMERA_POS.get()) {
+            endPoint = eyes.add(vanillaLook.scale(reach));
         }
 
-        // ── 2. Сущности ─────────────────────────────────────────────────────────
-        // Используем playerEye (main-world координаты), а не entity.getEyePosition(),
-        // которое на sub-level контрапциях возвращает астрономические координаты.
-        // Именно это заставляло sable расширять AABB до миллионов блоков.
-        Vec3 playerEye = minecraft.player.getEyePosition(partialTick);
+        BlockHitResult blockHit = mc.level.clip(new ClipContext(
+                eyes, endPoint,
+                ClipContext.Block.OUTLINE,
+                ClipContext.Fluid.NONE,
+                player
+        ));
 
-        double entitySearchRange = entityRange;
-        if (primaryHit.getType() != HitResult.Type.MISS) {
-            double hitDist = Math.sqrt(primaryDistSq);
-            if (hitDist < entitySearchRange) entitySearchRange = hitDist;
-        }
-
-        Vec3   entityEnd     = playerEye.add(tiltedLook.scale(entitySearchRange));
-        double entityRangeSq = entitySearchRange * entitySearchRange;
-        // AABB строим от playerEye до entityEnd — всегда маленький, всегда в main world
-        AABB searchBox = new AABB(playerEye, entityEnd).inflate(1.0);
+        AABB searchBox = player.getBoundingBox()
+                .expandTowards(tiltedLook.scale(reach))
+                .inflate(1.0);
 
         EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
-                minecraft.player, playerEye, entityEnd, searchBox,
+                player, eyes, endPoint, searchBox,
                 e -> !e.isSpectator() && e.isPickable(),
-                entityRangeSq);
+                reach * reach
+        );
 
-        // ── 3. Финальный результат ───────────────────────────────────────────────
+        HitResult chosen;
         if (entityHit != null) {
-            double entityDistSq = entityHit.getLocation().distanceToSqr(playerEye);
-            minecraft.hitResult = (entityDistSq < primaryDistSq) ? entityHit : primaryHit;
-            minecraft.crosshairPickEntity = entityHit.getEntity();
+            double blockDist = blockHit.getType() != HitResult.Type.MISS
+                    ? Sable.HELPER.distanceSquaredWithSubLevels(mc.level, eyes, blockHit.getLocation())
+                    : Double.MAX_VALUE;
+            double entityDist = Sable.HELPER.distanceSquaredWithSubLevels(mc.level, eyes, entityHit.getLocation());
+            chosen = entityDist < blockDist ? entityHit : blockHit;
         } else {
-            minecraft.hitResult = primaryHit;
-            minecraft.crosshairPickEntity = null;
+            chosen = blockHit;
         }
-    }
 
-    /** Только пустое ведро заставляет ванильный pick учитывать SOURCE_ONLY. */
-    private boolean isHoldingEmptyBucket() {
-        if (minecraft.player == null) return false;
-        return minecraft.player.getMainHandItem().is(Items.BUCKET)
-                || minecraft.player.getOffhandItem().is(Items.BUCKET);
-    }
+        if (Config.DEBUG_PICK_RAYS.get() && chosen.getType() != HitResult.Type.MISS) {
+            Vec3 h = chosen.getLocation();
+            float s = 0.05f;
+            DebugRayRenderer.submitPickRay(h.add(-s,0,0), h.add(s,0,0), 0f,1f,0f);
+            DebugRayRenderer.submitPickRay(h.add(0,-s,0), h.add(0,s,0), 0f,1f,0f);
+            DebugRayRenderer.submitPickRay(h.add(0,0,-s), h.add(0,0,s), 0f,1f,0f);
+        }
 
-    //TODO фикс логики жидкостей
+        mc.hitResult = chosen;
+    }
 }
