@@ -12,6 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -31,11 +32,15 @@ public class CameraUtils {
 
     private static int   RAY_COUNT          = 10; // 10 минимум, более 10000 лаги
     private static final float RAY_RADIUS         = 0.58f;
-    private static final float RAYCAST_OFFSET_UP  = 0.1f;
+    private static float RAYCAST_OFFSET_UP  = Config.RAYCAST_UP_LENGTH.get().floatValue();
     private static final float RAYCAST_LENGTH     = Config.MIN_NORMAL_Y.get().floatValue();
 
     private static float raycastOffsetDown() {
         return -Config.RAYCAST_DOWN_LENGTH.get().floatValue(); // зависит от скейла игрока
+    }
+
+    private static float raycastOffsetUp() {
+        return Config.RAYCAST_UP_LENGTH.get().floatValue();
     }
 
     // ── сглаженный тилт (живёт между кадрами) ────────────────────────────────
@@ -118,7 +123,7 @@ public class CameraUtils {
         int validCount = 0;
 
         for (Vec3 origin : origins) {
-            Vec3 from = origin.add(0, RAYCAST_OFFSET_UP,    0);
+            Vec3 from = origin.add(0, raycastOffsetUp(),    0);
             Vec3 to   = origin.add(0, raycastOffsetDown(),  0);
 
             BlockHitResult hit = raycastDown(subLevel, player, origin);
@@ -165,11 +170,37 @@ public class CameraUtils {
     /**
      * Накладывает сглаженный тилт поверх ванильного поворота камеры.
      */
-    public static void applyTiltToCamera(Camera camera) {
-        Quaternionf tilt    = new Quaternionf(smoothedTilt);
-        Quaternionf vanilla = new Quaternionf(camera.rotation());
-        tilt.mul(vanilla);
-        camera.rotation().set(tilt);
+    public static void applyTiltToCamera(Camera camera, float partialTick) {
+        if (Config.MODIFY_CAMERA_ROT.get()) {
+            Quaternionf tilt = new Quaternionf(smoothedTilt);
+            Quaternionf vanilla = new Quaternionf(camera.rotation());
+            tilt.mul(vanilla);
+            camera.rotation().set(tilt);
+        }
+
+        if (Config.MODIFY_CAMERA_POS.get()) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player == null) return;
+
+            double feetX = Mth.lerp(partialTick, player.xOld, player.getX());
+            double feetY = Mth.lerp(partialTick, player.yOld, player.getY());
+            double feetZ = Mth.lerp(partialTick, player.zOld, player.getZ());
+
+            Vec3 vanillaCamPos = camera.getPosition();
+            Vector3f offset = new Vector3f(
+                    (float)(vanillaCamPos.x - feetX),
+                    (float)(vanillaCamPos.y - feetY),
+                    (float)(vanillaCamPos.z - feetZ)
+            );
+
+            new Quaternionf(smoothedTilt).transform(offset);
+
+            camera.setPosition(
+                    feetX + offset.x,
+                    feetY + offset.y,
+                    feetZ + offset.z
+            );
+        }
     }
 
     public static Quaternionf getSmoothedTilt() {
@@ -188,7 +219,8 @@ public class CameraUtils {
      * (защита от ложных хитов когда игрок не над сабвелом).
      */
     private static BlockHitResult raycastDown(ClientSubLevel subLevel, LocalPlayer player, Vec3 origin) {
-        Vec3 from = new Vec3(origin.x, origin.y + RAYCAST_OFFSET_UP,   origin.z);
+        RAYCAST_OFFSET_UP = Config.RAYCAST_UP_LENGTH.get().floatValue();
+        Vec3 from = new Vec3(origin.x, origin.y + raycastOffsetUp(),   origin.z);
         Vec3 to   = new Vec3(origin.x, origin.y + raycastOffsetDown(),  origin.z);
 
         ClipContext ctx = new ClipContext(

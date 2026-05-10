@@ -21,12 +21,10 @@ import static com.playsi.aero_cam_sync.AeroCamSync.MODID;
 @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
 public class DebugRayRenderer {
 
-    // --- Публичный API: заполняется из CameraUtils каждый тик ---
     public record DebugRay(Vec3 origin, Vec3 end, float r, float g, float b) {}
 
     private static final List<DebugRay> pendingRays = new ArrayList<>();
 
-    /** Вызывай из CameraUtils перед рендером, чтобы передать лучи. */
     public static void submitRay(Vec3 origin, Vec3 end, float r, float g, float b) {
         if (!Config.DEBUG_RAYS.get()) return;
         pendingRays.add(new DebugRay(origin, end, r, g, b));
@@ -49,7 +47,6 @@ public class DebugRayRenderer {
 
         PoseStack ps = event.getPoseStack();
         ps.pushPose();
-        // Смещаем в систему координат относительно камеры
         ps.translate(-cam.x, -cam.y, -cam.z);
 
         MultiBufferSource.BufferSource buf =
