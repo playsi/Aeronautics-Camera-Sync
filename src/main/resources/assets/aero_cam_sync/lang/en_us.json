@@ -1,17 +1,40 @@
 {
-  "aero_cam_sync.configuration.title": "Aeronautics Camera Sync Mod Configs",
-  "aero_cam_sync.configuration.section.aero_cam_sync.common.toml": "Aeronautics Camera Sync Mod Configs",
-  "aero_cam_sync.configuration.section.aero_cam_sync.common.toml.title": "Aeronautics Camera Sync Mod Configs",
+  "aero_cam_sync.configuration.title": "Aeronautics Camera Sync Config",
 
-  "aero_cam_sync.configuration.enabled": "Enable mod",
-  "aero_cam_sync.configuration.enabled.tooltip": "Enables or disables camera tilt",
+  "aero_cam_sync.configuration.general": "General",
+  "aero_cam_sync.configuration.enabled": "Enable Mod",
+  "aero_cam_sync.configuration.enabled.tooltip": "Enables or disables the entire mod",
+  "aero_cam_sync.configuration.ignoreServer": "Client Side Only",
+  "aero_cam_sync.configuration.ignoreServer.tooltip": "Works regardless of server-side mod presence",
+  "aero_cam_sync.configuration.allow3rdPerson": "Allow in 3rd Person (Beta)",
+  "aero_cam_sync.configuration.allow3rdPerson.tooltip": "Apply camera tilt in third-person view",
 
-  "aero_cam_sync.configuration.minNormalY": "Max tilt",
-  "aero_cam_sync.configuration.minNormalY.tooltip": "How flat a surface must be to apply camera tilt (0.0 = any angle, 1.0 = perfectly flat)",
+  "aero_cam_sync.configuration.camera": "Camera",
+  "aero_cam_sync.configuration.rotateCamera": "Rotate Camera",
+  "aero_cam_sync.configuration.rotateCamera.tooltip": "Tilt the camera based on surface normal",
+  "aero_cam_sync.configuration.moveCamera": "Move Camera",
+  "aero_cam_sync.configuration.moveCamera.tooltip": "Shift camera position along with tilt",
+  "aero_cam_sync.configuration.smoothSpeed": "Smoothing Speed",
+  "aero_cam_sync.configuration.smoothSpeed.tooltip": "Interpolation speed per frame. 0.0 = instant, 9999 = never",
+  "aero_cam_sync.configuration.minNormalY": "Max Tilt Threshold",
+  "aero_cam_sync.configuration.minNormalY.tooltip": "Maximum camera tilt angle (0.0 = any, 1.0 = flat only)",
 
-  "key.aero_cam_sync.toggle": "Toggle Aeronautics Camera Sync",
+  "aero_cam_sync.configuration.raycast": "Raycasts",
+  "aero_cam_sync.configuration.count": "Raycast Count",
+  "aero_cam_sync.configuration.count.tooltip": "Number of rays used to sample the surface",
+  "aero_cam_sync.configuration.downLength": "Distance to Floor",
+  "aero_cam_sync.configuration.downLength.tooltip": "Max distance downward from player to detect a surface",
+  "aero_cam_sync.configuration.upLength": "Foot Offset",
+  "aero_cam_sync.configuration.upLength.tooltip": "Vertical offset from feet where raycasts start",
+
+  "aero_cam_sync.configuration.debug": "Debug",
+  "aero_cam_sync.configuration.rays": "Show Debug Rays",
+  "aero_cam_sync.configuration.rays.tooltip": "Render all raycast lines in the world",
+  "aero_cam_sync.configuration.pickRays": "Show Pick Rays",
+  "aero_cam_sync.configuration.pickRays.tooltip": "Tilted pick ray",
+
+  "key.aero_cam_sync.toggle": "Toggle Camera Tilt",
   "key.category.aero_cam_sync": "Aeronautics Camera Sync",
   "msg.aero_cam_sync.enabled": "§aCam Tilt: ON",
   "msg.aero_cam_sync.disabled": "§cCam Tilt: OFF"
-
 }

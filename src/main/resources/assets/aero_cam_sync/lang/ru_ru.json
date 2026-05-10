@@ -1,0 +1,40 @@
+{
+  "aero_cam_sync.configuration.title": "Aeronautics Camera Sync Настройки",
+
+  "aero_cam_sync.configuration.general": "Основное",
+  "aero_cam_sync.configuration.enabled": "Включить мод",
+  "aero_cam_sync.configuration.enabled.tooltip": "Включить мод",
+  "aero_cam_sync.configuration.ignoreServer": "Только на клиенте",
+  "aero_cam_sync.configuration.ignoreServer.tooltip": "Игнорировать сервер",
+  "aero_cam_sync.configuration.allow3rdPerson": "От третьего лица (Бета)",
+  "aero_cam_sync.configuration.allow3rdPerson.tooltip": "Наклон камеры от третьего лица",
+
+  "aero_cam_sync.configuration.camera": "Камера",
+  "aero_cam_sync.configuration.rotateCamera": "Поворот камеры",
+  "aero_cam_sync.configuration.rotateCamera.tooltip": "Наклонять камеру",
+  "aero_cam_sync.configuration.moveCamera": "Смещение камеры",
+  "aero_cam_sync.configuration.moveCamera.tooltip": "Сдвигать позицию камеры вместе с наклоном",
+  "aero_cam_sync.configuration.smoothSpeed": "Скорость сглаживания",
+  "aero_cam_sync.configuration.smoothSpeed.tooltip": "Скорость интерполяции за кадр. 0.0 = мгновенно, 9999 = никогда",
+  "aero_cam_sync.configuration.minNormalY": "Порог наклона",
+  "aero_cam_sync.configuration.minNormalY.tooltip": "Насколько ровной должна быть поверхность (0.0 = любой угол, 1.0 = только горизонталь)",
+
+  "aero_cam_sync.configuration.raycast": "Лучи",
+  "aero_cam_sync.configuration.count": "Количество лучей",
+  "aero_cam_sync.configuration.count.tooltip": "Сколько лучей анализирует поверхность",
+  "aero_cam_sync.configuration.downLength": "Дистанция до пола",
+  "aero_cam_sync.configuration.downLength.tooltip": "Максимальное расстояние вниз для обнаружения поверхности",
+  "aero_cam_sync.configuration.upLength": "Смещение от ног",
+  "aero_cam_sync.configuration.upLength.tooltip": "Высота начала луча от уровня ног",
+
+  "aero_cam_sync.configuration.debug": "Отладка",
+  "aero_cam_sync.configuration.rays": "Показать лучи",
+  "aero_cam_sync.configuration.rays.tooltip": "Рендерить лучи в мире",
+  "aero_cam_sync.configuration.pickRays": "Показать лучи выбора",
+  "aero_cam_sync.configuration.pickRays.tooltip": "Лучи выбора",
+
+  "key.aero_cam_sync.toggle": "Переключить наклон камеры",
+  "key.category.aero_cam_sync": "Aeronautics Camera Sync",
+  "msg.aero_cam_sync.enabled": "§aНаклон камеры: ВКЛ",
+  "msg.aero_cam_sync.disabled": "§cНаклон камеры: ВЫКЛ"
+}
