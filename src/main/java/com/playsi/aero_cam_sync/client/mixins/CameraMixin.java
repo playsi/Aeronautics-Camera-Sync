@@ -35,18 +35,14 @@ public abstract class CameraMixin {
 
         DebugRayRenderer.clear();
 
-        if (subLevel == null) {
-            updateSmoothedTilt(null, deltaTime, false);
-            applyTiltToCamera((Camera) (Object) this, partialTick);
-            return;
+        Vector3f surfaceNormal = null;
+
+        if (subLevel != null) {
+            Pose3dc pose = subLevel.renderPose(partialTick);
+            surfaceNormal = getSurfaceNormal(subLevel, pose);
         }
 
-        Pose3dc pose = subLevel.renderPose(partialTick);
-        Vector3f surfaceNormal = getSurfaceNormal(subLevel, pose);
-
         updateSmoothedTilt(surfaceNormal, deltaTime, false);
-        applyTiltToCamera((Camera) (Object) this, partialTick);
+        applyTiltToCamera((Camera)(Object) this, partialTick);
     }
-
-    //TODO задержка камеры
 }
