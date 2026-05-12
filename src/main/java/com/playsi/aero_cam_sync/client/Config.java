@@ -12,6 +12,9 @@ public class Config {
     public static final ModConfigSpec.BooleanValue ALLOW_3RD_PERSON =
             BUILDER.comment("Allow in 3rd person view (BETA)").define("allow3rdPerson", false);
 
+    public static final ModConfigSpec.BooleanValue IGNORE_SERVER =
+            BUILDER.comment("Force use client").define("clientOnly", false);
+
     // ── Camera ─────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.BooleanValue MODIFY_CAMERA_ROT =
             BUILDER.comment("Rotate camera").define("rotateCamera", true);
@@ -41,6 +44,9 @@ public class Config {
                     .defineInRange("upLength", 0.2, -1.0, 1.0);
 
     // ── Debug ──────────────────────────────────────────────────────────────────
+    public static final ModConfigSpec.BooleanValue DEBUG_MESSAGES =
+            BUILDER.comment("Show debug message in console").define("debugMessages", false);
+
     public static final ModConfigSpec.BooleanValue DEBUG_RAYS =
             BUILDER.comment("Render debug raycasts").define("rays", false);
 
