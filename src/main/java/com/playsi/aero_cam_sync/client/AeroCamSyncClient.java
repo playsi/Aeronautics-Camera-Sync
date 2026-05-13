@@ -2,6 +2,7 @@ package com.playsi.aero_cam_sync.client;
 
 import com.playsi.aero_cam_sync.AeroCamSync;
 import com.playsi.aero_cam_sync.SideManager;
+import com.playsi.aero_cam_sync.client.config.ModConfigScreen;
 import com.playsi.aero_cam_sync.client.utils.KeyBindings;
 import com.playsi.aero_cam_sync.network.HandshakePacket;
 import net.minecraft.client.Minecraft;
@@ -16,10 +17,8 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.event.RegisterConfigurationTasksEvent;
 
 import static com.playsi.aero_cam_sync.AeroCamSync.MODID;
 
@@ -31,7 +30,8 @@ public class AeroCamSyncClient {
 
     public AeroCamSyncClient(ModContainer container) {
         container.registerConfig(ModConfig.Type.CLIENT, Config.SPEC);
-        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+        container.registerExtensionPoint(IConfigScreenFactory.class,
+                (mc, parent) -> new ModConfigScreen(parent));
     }
 
     @SubscribeEvent
