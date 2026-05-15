@@ -1,7 +1,7 @@
 package com.playsi.aero_cam_sync.network;
 
 import com.playsi.aero_cam_sync.AeroCamSync;
-import com.playsi.aero_cam_sync.client.Config;
+import com.playsi.aero_cam_sync.client.config.Config;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;

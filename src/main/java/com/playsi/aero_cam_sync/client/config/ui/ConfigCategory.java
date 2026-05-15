@@ -1,11 +1,11 @@
-package com.playsi.aero_cam_sync.client.config;
+package com.playsi.aero_cam_sync.client.config.ui;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigCategory {
 
-    private final String nameKey; // translation key
+    private final String nameKey;
     private final List<ConfigOptionList.Entry> entries = new ArrayList<>();
 
     public ConfigCategory(String nameKey) {

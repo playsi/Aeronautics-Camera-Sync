@@ -1,6 +1,6 @@
 package com.playsi.aero_cam_sync;
 
-import com.playsi.aero_cam_sync.client.Config;
+import com.playsi.aero_cam_sync.client.config.Config;
 
 public class SideManager {
 

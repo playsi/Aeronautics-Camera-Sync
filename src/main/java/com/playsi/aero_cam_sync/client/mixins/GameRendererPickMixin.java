@@ -1,6 +1,6 @@
 package com.playsi.aero_cam_sync.client.mixins;
 
-import com.playsi.aero_cam_sync.client.Config;
+import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import dev.ryanhcode.sable.Sable;
 import net.minecraft.client.DeltaTracker;

@@ -36,5 +36,7 @@
   "key.aero_cam_sync.toggle": "Toggle Camera Tilt",
   "key.category.aero_cam_sync": "Aeronautics Camera Sync",
   "msg.aero_cam_sync.enabled": "§aCam Tilt: ON",
-  "msg.aero_cam_sync.disabled": "§cCam Tilt: OFF"
+  "msg.aero_cam_sync.disabled": "§cCam Tilt: OFF",
+
+  "aero_cam_sync.configuration.keybind.conflict": "Key is already in use, may cause conflicts!"
 }
