@@ -44,8 +44,9 @@ public class AeroCamSyncClient {
     }
 
     @SubscribeEvent
-    static void onRegisterKeyMappings(RegisterKeyMappingsEvent event) {
+    public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
         event.register(KeyBindings.TOGGLE);
+        event.register(KeyBindings.OPEN_CONFIG);
     }
 
     @SubscribeEvent

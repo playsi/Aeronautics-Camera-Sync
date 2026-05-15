@@ -41,6 +41,11 @@ public class KeyBindings {
         KeyMapping.resetMapping();
     }
 
+    public static void syncFromMappings() {
+        Config.TOGGLE_KEY.set(TOGGLE.getKey().getName());
+        Config.OPEN_CONFIG_KEY.set(OPEN_CONFIG.getKey().getName());
+    }
+
     private static InputConstants.Key parseKey(String keyName) {
         if (keyName == null || keyName.isEmpty() || keyName.equals("key.unknown"))
             return InputConstants.UNKNOWN;
