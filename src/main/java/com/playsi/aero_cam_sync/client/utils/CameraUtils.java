@@ -1,6 +1,6 @@
 package com.playsi.aero_cam_sync.client.utils;
 
-import com.playsi.aero_cam_sync.client.Config;
+import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import dev.ryanhcode.sable.Sable;
 import dev.ryanhcode.sable.companion.math.BoundingBox3dc;

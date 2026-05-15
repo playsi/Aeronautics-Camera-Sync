@@ -1,4 +1,4 @@
-package com.playsi.aero_cam_sync.client;
+package com.playsi.aero_cam_sync.client.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -14,6 +14,14 @@ public class Config {
 
     public static final ModConfigSpec.BooleanValue IGNORE_SERVER =
             BUILDER.comment("Force use client").define("clientOnly", false);
+
+    public static final ModConfigSpec.ConfigValue<String> TOGGLE_KEY =
+            BUILDER.comment("Toggle mod keybind")
+                    .define("toggleKey", "key.keyboard.i");
+
+    public static final ModConfigSpec.ConfigValue<String> OPEN_CONFIG_KEY =
+            BUILDER.comment("Open config screen keybind")
+                    .define("openConfigKey", "");
 
     // ── Camera ─────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.BooleanValue MODIFY_CAMERA_ROT =

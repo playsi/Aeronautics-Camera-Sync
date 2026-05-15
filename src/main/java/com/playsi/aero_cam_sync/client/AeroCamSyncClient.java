@@ -2,6 +2,7 @@ package com.playsi.aero_cam_sync.client;
 
 import com.playsi.aero_cam_sync.AeroCamSync;
 import com.playsi.aero_cam_sync.SideManager;
+import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.config.ModConfigScreen;
 import com.playsi.aero_cam_sync.client.utils.KeyBindings;
 import com.playsi.aero_cam_sync.network.HandshakePacket;
@@ -13,12 +14,15 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.Objects;
 
 import static com.playsi.aero_cam_sync.AeroCamSync.MODID;
 
@@ -32,6 +36,11 @@ public class AeroCamSyncClient {
         container.registerConfig(ModConfig.Type.CLIENT, Config.SPEC);
         container.registerExtensionPoint(IConfigScreenFactory.class,
                 (mc, parent) -> new ModConfigScreen(parent));
+
+        Objects.requireNonNull(container.getEventBus()).addListener((ModConfigEvent.Loading e) -> {
+            if (e.getConfig().getSpec() == Config.SPEC)
+                KeyBindings.loadFromConfig();
+        });
     }
 
     @SubscribeEvent
@@ -56,7 +65,6 @@ public class AeroCamSyncClient {
             return;
         }
 
-        // Не шлём сразу — канал ещё не согласован на этом этапе
         pendingHandshake = true;
         if (Config.DEBUG_MESSAGES.get()) {
             AeroCamSync.LOGGER.info("[AeroCamSync] Login detected, handshake scheduled for next tick");
@@ -82,7 +90,7 @@ public class AeroCamSyncClient {
             if (mc.getConnection() != null) {
                 boolean serverHasMod = mc.getConnection()
                         .getConnectionType()
-                        .isNeoForge(); // LAN/dedicated NeoForge сервер
+                        .isNeoForge();
 
                 // Дополнительно проверяем через negotiated channels
                 boolean channelAvailable = mc.getConnection()
@@ -108,7 +116,7 @@ public class AeroCamSyncClient {
             }
         }
 
-        // Toggle обработка
+        // enable disable camera sync
         while (KeyBindings.TOGGLE.consumeClick()) {
             boolean newValue = !Config.MOD_ENABLED.get();
             Config.MOD_ENABLED.set(newValue);
@@ -118,6 +126,7 @@ public class AeroCamSyncClient {
                 String msgKey = newValue ? "msg.aero_cam_sync.enabled" : "msg.aero_cam_sync.disabled";
                 mc.player.displayClientMessage(Component.translatable(msgKey), true);
 
+
                 if (Config.DEBUG_MESSAGES.get()) {
                     AeroCamSync.LOGGER.info(
                             "[AeroCamSync] Toggled: {} | Side: {}",
@@ -125,6 +134,14 @@ public class AeroCamSyncClient {
                             SideManager.getSide()
                     );
                 }
+            }
+        }
+
+        // open mod config
+        while (KeyBindings.OPEN_CONFIG.consumeClick()) {
+            Minecraft mc = Minecraft.getInstance();
+            if (mc.screen == null) {
+                mc.setScreen(new ModConfigScreen(null));
             }
         }
     }
