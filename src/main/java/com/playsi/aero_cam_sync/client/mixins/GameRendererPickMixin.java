@@ -2,6 +2,7 @@ package com.playsi.aero_cam_sync.client.mixins;
 
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
+import com.playsi.aero_cam_sync.client.utils.CameraController;
 import dev.ryanhcode.sable.Sable;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -18,9 +19,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static com.playsi.aero_cam_sync.client.utils.CameraUtils.getSmoothedTilt;
-import static com.playsi.aero_cam_sync.client.utils.CameraUtils.shouldApplyTilt;
-
 @Mixin(GameRenderer.class)
 public abstract class GameRendererPickMixin {
 
@@ -28,14 +26,14 @@ public abstract class GameRendererPickMixin {
 
     @Inject(method = "pick", at = @At("TAIL"))
     private void recalculateTiltedPick(float partialTick, CallbackInfo ci) {
-        if (!Config.MOD_ENABLED.get() || !shouldApplyTilt()) return;
+        if (!Config.MOD_ENABLED.get() || !CameraController.shouldApplyTilt()) return;
         if (!Config.MODIFY_CAMERA_ROT.get() && !Config.MODIFY_CAMERA_POS.get()) return;
 
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
         if (!mc.options.getCameraType().isFirstPerson()) return;
 
-        Quaternionf tilt = getSmoothedTilt();
+        Quaternionf tilt = CameraController.getSmoothedTilt();
         if (player == null || mc.level == null) return;
 
         Vec3 eyes = mc.gameRenderer.getMainCamera().getPosition();

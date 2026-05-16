@@ -2,7 +2,7 @@ package com.playsi.aero_cam_sync.client.config.entries;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList;
-import com.playsi.aero_cam_sync.client.utils.KeyBindings;
+import com.playsi.aero_cam_sync.client.KeyBindings;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;

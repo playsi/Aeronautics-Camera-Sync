@@ -1,4 +1,4 @@
-package com.playsi.aero_cam_sync.client.utils;
+package com.playsi.aero_cam_sync.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.playsi.aero_cam_sync.client.config.Config;
