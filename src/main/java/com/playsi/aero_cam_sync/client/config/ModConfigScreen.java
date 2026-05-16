@@ -2,7 +2,7 @@ package com.playsi.aero_cam_sync.client.config;
 
 import com.playsi.aero_cam_sync.client.config.ui.ConfigCategory;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList;
-import com.playsi.aero_cam_sync.client.utils.KeyBindings;
+import com.playsi.aero_cam_sync.client.KeyBindings;
 import com.playsi.aero_cam_sync.client.config.entries.*;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -31,6 +31,7 @@ public class ModConfigScreen extends Screen {
     public ModConfigScreen(Screen parent) {
         super(Component.translatable("aero_cam_sync.configuration.title"));
         this.parent = parent;
+        KeyBindings.syncFromMappings();
         buildCategories();
         snapshotAll();
     }
@@ -44,49 +45,59 @@ public class ModConfigScreen extends Screen {
                 "aero_cam_sync.configuration.enabled",
                 "aero_cam_sync.configuration.enabled.tooltip",
                 Config.MOD_ENABLED));
+
         general.add(new KeyBindEntry(
                 "aero_cam_sync.configuration.toggleKey",
                 "aero_cam_sync.configuration.toggleKey.tooltip",
                 KeyBindings.TOGGLE,
                 Config.TOGGLE_KEY));
+
         general.add(new SeparatorEntry());
-        general.add(new BooleanEntry(
+
+        general.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.allow3rdPerson",
                 "aero_cam_sync.configuration.allow3rdPerson.tooltip",
                 Config.ALLOW_3RD_PERSON));
-        general.add(new BooleanEntry(
+
+        general.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.ignoreServer",
                 "aero_cam_sync.configuration.ignoreServer.tooltip",
                 Config.IGNORE_SERVER));
+
         general.add(new KeyBindEntry(
                 "aero_cam_sync.configuration.openConfigKey",
                 "aero_cam_sync.configuration.openConfigKey.tooltip",
                 KeyBindings.OPEN_CONFIG,
                 Config.OPEN_CONFIG_KEY));
+
         categories.add(general);
 
         // Camera
         ConfigCategory camera = new ConfigCategory("aero_cam_sync.configuration.camera");
-        camera.add(new BooleanEntry(
+        camera.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.rotateCamera",
                 "aero_cam_sync.configuration.rotateCamera.tooltip",
                 Config.MODIFY_CAMERA_ROT));
-        camera.add(new BooleanEntry(
+
+        camera.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.moveCamera",
                 "aero_cam_sync.configuration.moveCamera.tooltip",
                 Config.MODIFY_CAMERA_POS));
+
         camera.add(new SliderEntry(
                 "aero_cam_sync.configuration.smoothSpeed",
                 "aero_cam_sync.configuration.smoothSpeed.tooltip",
                 Config.SMOOTH_SPEED,
                 0.1,  10.0,  0.05,   // sliderMin, sliderMax, step
                 0.0,  9999.0));       // hardMin, hardMax
+
         camera.add(new SliderEntry(
                 "aero_cam_sync.configuration.minNormalY",
                 "aero_cam_sync.configuration.minNormalY.tooltip",
                 Config.MIN_NORMAL_Y,
                 0.0, 1.0, 0.01,
                 0.0, 1.0));
+
         categories.add(camera);
 
         // Raycast
@@ -97,34 +108,62 @@ public class ModConfigScreen extends Screen {
                 Config.RAYCAST_COUNT,
                 1, 100, 1,       // sliderMin, sliderMax, step
                 1, 10000));      // hardMin, hardMax
+
         raycast.add(new SliderEntry(
                 "aero_cam_sync.configuration.downLength",
                 "aero_cam_sync.configuration.downLength.tooltip",
                 Config.RAYCAST_DOWN_LENGTH,
                 0.1, 12.0, 0.1,
                 0.1, 12.0));
+
         raycast.add(new SliderEntry(
                 "aero_cam_sync.configuration.upLength",
                 "aero_cam_sync.configuration.upLength.tooltip",
                 Config.RAYCAST_UP_LENGTH,
                 -1.0, 1.0, 0.05,
                 -1.0, 1.0));
+
+        raycast.add(new SeparatorEntry());
+
+        raycast.add(new ToggleButtonEntry(
+                "aero_cam_sync.configuration.dropCacheOnAllMiss",
+                "aero_cam_sync.configuration.dropCacheOnAllMiss.tooltip",
+                Config.DROP_CACHE_ON_ALL_MISS));
+
+        raycast.add(new ToggleButtonEntry(
+                "aero_cam_sync.configuration.disableOnFlying",
+                "aero_cam_sync.configuration.disableOnFlying.tooltip",
+                Config.DISABLE_ON_FLYING));
+
         categories.add(raycast);
+
 
         // Debug
         ConfigCategory debug = new ConfigCategory("aero_cam_sync.configuration.debug");
         debug.add(new SeparatorEntry("Samples ray"));
-        debug.add(new BooleanEntry(
+
+        debug.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.rays",
                 "aero_cam_sync.configuration.rays.tooltip",
                 Config.DEBUG_RAYS));
+
         debug.add(new SeparatorEntry("Pick ray"));
-        debug.add(new BooleanEntry(
+
+        debug.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.pickRays",
                 "aero_cam_sync.configuration.pickRays.tooltip",
                 Config.DEBUG_PICK_RAYS));
+
+        debug.add(new SliderEntry(
+                "aero_cam_sync.configuration.pickRaysTimeSec",
+                "aero_cam_sync.configuration.pickRaysTimeSec.tooltip",
+                Config.PICK_RAYS_TIME_SEC,
+                0.1, 60.0, 0.1,
+                0.01, 600.0));
+
         debug.add(new SeparatorEntry(""));
-        debug.add(new BooleanEntry(
+
+        debug.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.debugMessages",
                 "",
                 Config.DEBUG_MESSAGES));
@@ -271,6 +310,10 @@ public class ModConfigScreen extends Screen {
     @Override
     public void onClose() {
         restoreAll();
+
+        KeyBindings.saveToConfig();
+        KeyBindings.loadFromConfig();
+
         this.minecraft.setScreen(parent);
     }
 

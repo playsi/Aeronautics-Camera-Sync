@@ -4,7 +4,7 @@ import com.playsi.aero_cam_sync.AeroCamSync;
 import com.playsi.aero_cam_sync.SideManager;
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.config.ModConfigScreen;
-import com.playsi.aero_cam_sync.client.utils.KeyBindings;
+import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import com.playsi.aero_cam_sync.network.HandshakePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
@@ -121,6 +121,7 @@ public class AeroCamSyncClient {
         while (KeyBindings.TOGGLE.consumeClick()) {
             boolean newValue = !Config.MOD_ENABLED.get();
             Config.MOD_ENABLED.set(newValue);
+            DebugRayRenderer.clear();
 
             Minecraft mc = Minecraft.getInstance();
             if (mc.player != null) {

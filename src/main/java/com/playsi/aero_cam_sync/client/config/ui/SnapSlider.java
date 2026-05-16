@@ -6,9 +6,6 @@ import net.minecraft.util.Mth;
 
 import java.util.function.DoubleConsumer;
 
-/**
- * Слайдер с шагом (step) и возможностью программно задать значение (setExternalValue).
- */
 public class SnapSlider extends AbstractSliderButton {
 
     private final double min, max, step;
