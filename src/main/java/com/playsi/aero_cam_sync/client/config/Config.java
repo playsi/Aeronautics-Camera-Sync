@@ -51,16 +51,32 @@ public class Config {
             BUILDER.comment("Raycast start offset from foot")
                     .defineInRange("upLength", 0.2, -1.0, 1.0);
 
-    // ── Debug ──────────────────────────────────────────────────────────────────
-    public static final ModConfigSpec.BooleanValue DEBUG_MESSAGES =
-            BUILDER.comment("Show debug message in console").define("debugMessages", false);
+    public static final ModConfigSpec.BooleanValue DROP_CACHE_ON_ALL_MISS =
+            BUILDER.comment("Immediately forgot sublevel when player step off")
+                    .define("dropOnAllMiss", true);
 
+    public static final ModConfigSpec.BooleanValue DISABLE_ON_FLYING =
+            BUILDER.comment("Stop camera tilt when flying (Creative or Spectator)")
+                    .define("disableOnFlying", true);
+
+
+
+    // ── Debug ──────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.BooleanValue DEBUG_RAYS =
             BUILDER.comment("Render debug raycasts").define("rays", false);
 
     public static final ModConfigSpec.BooleanValue DEBUG_PICK_RAYS =
             BUILDER.comment("Show tilted pick ray")
                     .define("pickRays", false);
+
+    public static final ModConfigSpec.DoubleValue PICK_RAYS_TIME_SEC =
+            BUILDER.comment("time until the pick rays disappear")
+                    .defineInRange("pickRaysTime", 3.0, 0.01, 600.0);
+
+
+    public static final ModConfigSpec.BooleanValue DEBUG_MESSAGES =
+            BUILDER.comment("Show debug message in console").define("debugMessages", false);
+
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 }

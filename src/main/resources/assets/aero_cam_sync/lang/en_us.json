@@ -53,6 +53,14 @@
   "aero_cam_sync.configuration.toggle.off": "Off",
 
   "key.aero_cam_sync.none": "Not Bound",
-  "aero_cam_sync.configuration.openconfigkey.tooltip": "",
+
+  "aero_cam_sync.configuration.toggleKey": "On/off key bind",
+  "aero_cam_sync.configuration.toggleKey.tooltip": "bind key",
+  "aero_cam_sync.configuration.openConfigKey": "Open this window",
+  "aero_cam_sync.configuration.openConfigKey.tooltip": "bind key",
+
+  "aero_cam_sync.configuration.pickRaysSec": "Open this window",
+  "aero_cam_sync.configuration.pickRaysSec.tooltip": "bind key",
+
   "aero_cam_sync.configuration.keybind.conflict": "Key is already in use, may cause conflicts!"
 }
