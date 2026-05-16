@@ -7,7 +7,6 @@ import net.minecraft.network.chat.Component;
 
 public class ConfigOptionList extends ContainerObjectSelectionList<ConfigOptionList.Entry> {
 
-    /** Высота строки по умолчанию — используется во всех Entry */
     public static final int ENTRY_H = 26;
 
     public ConfigOptionList(Minecraft mc, int width, int height, int y, int itemHeight) {
@@ -33,19 +32,14 @@ public class ConfigOptionList extends ContainerObjectSelectionList<ConfigOptionL
             this.tooltipKey = tooltipKey;
         }
 
-        /** Зафиксировать текущее значение конфига (вызывается при открытии экрана) */
         public abstract void saveSnapshot();
 
-        /** Восстановить значение на момент открытия (Cancel) */
         public abstract void restoreSnapshot();
 
-        /** Сбросить к default */
         public abstract void reset();
 
-        /** true если значение вышло за hardMin/hardMax — блокирует кнопку Save */
         public abstract boolean hasHardLimitViolation();
 
-        /** Утилита: нарисовать лейбл слева */
         protected void drawLabel(GuiGraphics gfx, int x, int y) {
             Minecraft mc = Minecraft.getInstance();
             gfx.drawString(mc.font, Component.translatable(labelKey),
