@@ -74,17 +74,6 @@ public class ModConfigScreen extends Screen {
 
         // Camera
         ConfigCategory camera = new ConfigCategory("aero_cam_sync.configuration.camera");
-        camera.add(new EnumEntry<>(
-                "aero_cam_sync.configuration.camera_smooth_mode",
-                "aero_cam_sync.configuration.camera_smooth_mode.tooltip",
-                Config.CAMERA_SMOOTH_MODE,
-                CameraSmoothMode.values(),
-                mode -> Component.translatable(
-                        "aero_cam_sync.configuration.camera_smooth_mode." + mode.name().toLowerCase())
-        ));
-
-        camera.add(new SeparatorEntry());
-
         camera.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.rotateCamera",
                 "aero_cam_sync.configuration.rotateCamera.tooltip",
@@ -108,6 +97,19 @@ public class ModConfigScreen extends Screen {
                 Config.MIN_NORMAL_Y,
                 0.0, 1.0, 0.01,
                 0.0, 1.0));
+
+        camera.add(new SeparatorEntry());
+
+        camera.add(new ToggleButtonEntry(
+                "aero_cam_sync.configuration.dropCacheOnAllMiss",
+                "aero_cam_sync.configuration.dropCacheOnAllMiss.tooltip",
+                Config.DROP_CACHE_ON_ALL_MISS));
+
+        camera.add(new ToggleButtonEntry(
+                "aero_cam_sync.configuration.disableOnFlying",
+                "aero_cam_sync.configuration.disableOnFlying.tooltip",
+                Config.DISABLE_ON_FLYING));
+
 
         categories.add(camera);
 
@@ -133,18 +135,6 @@ public class ModConfigScreen extends Screen {
                 Config.RAYCAST_UP_LENGTH,
                 -1.0, 1.0, 0.05,
                 -1.0, 1.0));
-
-        raycast.add(new SeparatorEntry());
-
-        raycast.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.dropCacheOnAllMiss",
-                "aero_cam_sync.configuration.dropCacheOnAllMiss.tooltip",
-                Config.DROP_CACHE_ON_ALL_MISS));
-
-        raycast.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.disableOnFlying",
-                "aero_cam_sync.configuration.disableOnFlying.tooltip",
-                Config.DISABLE_ON_FLYING));
 
         categories.add(raycast);
 
@@ -313,7 +303,7 @@ public class ModConfigScreen extends Screen {
             saveButton.active = !violation;
             if (violation) {
                 gfx.drawCenteredString(this.font,
-                        Component.translatable("aero_cam_sync.configuration.hard_limit_warning"),
+                        Component.translatable("aero_cam_sync.configuration.hardLimitWarning"),
                         this.width / 2, this.height - FOOTER_HEIGHT - 10, 0xFFFFFF);
             }
         }

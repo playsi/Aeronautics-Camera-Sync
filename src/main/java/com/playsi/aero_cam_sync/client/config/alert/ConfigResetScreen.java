@@ -21,7 +21,7 @@ public class ConfigResetScreen extends Screen {
 
     @Override
     protected void init() {
-        // Кнопка "Да — сбросить"
+        // Yes, reset
         this.addRenderableWidget(Button.builder(
                 Component.translatable("screen.aero_cam_sync.config_reset.yes"),
                 btn -> {
@@ -31,7 +31,7 @@ public class ConfigResetScreen extends Screen {
                 }
         ).bounds(this.width / 2 - 155, this.height / 2 + 10, 150, 20).build());
 
-        // Кнопка "Нет — оставить как есть"
+        // No, keep
         this.addRenderableWidget(Button.builder(
                 Component.translatable("screen.aero_cam_sync.config_reset.no"),
                 btn -> {
@@ -67,9 +67,12 @@ public class ConfigResetScreen extends Screen {
         super.render(graphics, mouseX, mouseY, delta);
 
         graphics.drawCenteredString(this.font, this.title,
-                this.width / 2, this.height / 2 - 30, 0xFFFFFF);
-        graphics.drawCenteredString(this.font,
-                Component.translatable("screen.aero_cam_sync.config_reset.body"),
-                this.width / 2, this.height / 2 - 10, 0xAAAAAA);
+                this.width / 2, this.height / 2 - 40, 0xFFFFFF);
+        graphics.drawString(this.font,
+                Component.translatable("screen.aero_cam_sync.config_reset.body1"),
+                this.width / 2 - 140, this.height / 2 - 10, 0xCCCCCC);
+        graphics.drawString(this.font,
+                Component.translatable("screen.aero_cam_sync.config_reset.body2"),
+                this.width / 2 - 140, this.height / 2 - 22, 0xCCCCCC);
     }
 }
