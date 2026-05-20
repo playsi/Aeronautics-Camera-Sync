@@ -74,6 +74,17 @@ public class ModConfigScreen extends Screen {
 
         // Camera
         ConfigCategory camera = new ConfigCategory("aero_cam_sync.configuration.camera");
+        camera.add(new EnumEntry<>(
+                "aero_cam_sync.configuration.camera_smooth_mode",
+                "aero_cam_sync.configuration.camera_smooth_mode.tooltip",
+                Config.CAMERA_SMOOTH_MODE,
+                CameraSmoothMode.values(),
+                mode -> Component.translatable(
+                        "aero_cam_sync.configuration.camera_smooth_mode." + mode.name().toLowerCase())
+        ));
+
+        camera.add(new SeparatorEntry());
+
         camera.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.rotateCamera",
                 "aero_cam_sync.configuration.rotateCamera.tooltip",
@@ -224,7 +235,6 @@ public class ModConfigScreen extends Screen {
         int startX = (this.width - totalW) / 2;
         int btnY   = this.height - FOOTER_HEIGHT + 8;
 
-        // Cancel — восстанавливает значения на момент открытия экрана
         addRenderableWidget(Button.builder(
                         Component.translatable("aero_cam_sync.configuration.btn.cancel"), btn -> {
                             restoreAll();
@@ -247,8 +257,10 @@ public class ModConfigScreen extends Screen {
         addRenderableWidget(resetButton);
 
         saveButton = Button.builder(
-                        Component.translatable("aero_cam_sync.configuration.btn.save"), btn ->
-                                this.minecraft.setScreen(parent)  // значения уже применены live
+                        Component.translatable("aero_cam_sync.configuration.btn.save"), btn -> {
+                            Config.SPEC.save();
+                            this.minecraft.setScreen(parent);
+                        }
                 )
                 .bounds(startX + (btnW + gap) * 2, btnY, btnW, btnH)
                 .build();

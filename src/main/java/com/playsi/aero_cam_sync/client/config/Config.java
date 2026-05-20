@@ -38,6 +38,9 @@ public class Config {
             BUILDER.comment("Maximum tilt threshold (0.0 - 1.0)")
                     .defineInRange("minNormalY", 0.8, 0.0, 1.0);
 
+    public static final ModConfigSpec.EnumValue<CameraSmoothMode> CAMERA_SMOOTH_MODE =
+            BUILDER.defineEnum("CameraSmoothMode", CameraSmoothMode.ADVANCED);
+
     // ── Raycast ────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.IntValue RAYCAST_COUNT =
             BUILDER.comment("Number of raycasts (10 is usually enough)")
@@ -77,6 +80,15 @@ public class Config {
     public static final ModConfigSpec.BooleanValue DEBUG_MESSAGES =
             BUILDER.comment("Show debug message in console").define("debugMessages", false);
 
+
+    // ── Meta ──────────────────────────────────────────────────────────────────
+    public static final int CURRENT_CONFIG_SCHEMA = 2; // breaking changes
+
+    public static final ModConfigSpec.IntValue CONFIG_SCHEMA_VERSION =
+            BUILDER.comment(
+                    "Config schema version. Do not edit manually.\n" +
+                            "Used to detect when a config reset prompt should be shown."
+            ).defineInRange("configSchemaVersion", 0, 0, Integer.MAX_VALUE);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
 }
