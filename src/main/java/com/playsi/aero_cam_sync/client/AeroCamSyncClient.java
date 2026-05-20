@@ -4,9 +4,12 @@ import com.playsi.aero_cam_sync.AeroCamSync;
 import com.playsi.aero_cam_sync.SideManager;
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.config.ModConfigScreen;
+import com.playsi.aero_cam_sync.client.config.alert.ConfigMigrationManager;
+import com.playsi.aero_cam_sync.client.config.alert.ConfigResetScreen;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import com.playsi.aero_cam_sync.network.HandshakePacket;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -16,12 +19,15 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.nio.file.Files;
 import java.util.Objects;
 
 import static com.playsi.aero_cam_sync.AeroCamSync.MODID;
@@ -33,6 +39,9 @@ public class AeroCamSyncClient {
     private static boolean pendingHandshake = false;
 
     public AeroCamSyncClient(ModContainer container) {
+        boolean configExisted = Files.exists(FMLPaths.CONFIGDIR.get().resolve(MODID + "-client.toml"));
+        ConfigMigrationManager.setConfigExisted(configExisted);
+
         container.registerConfig(ModConfig.Type.CLIENT, Config.SPEC);
         container.registerExtensionPoint(IConfigScreenFactory.class,
                 (mc, parent) -> new ModConfigScreen(parent));
@@ -52,6 +61,15 @@ public class AeroCamSyncClient {
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
         AeroCamSync.LOGGER.info("{} Initialized!", MODID);
+    }
+
+    @SubscribeEvent
+    public static void onScreenOpen(ScreenEvent.Opening event) {
+        if (!(event.getScreen() instanceof TitleScreen)) return;
+        if (ConfigMigrationManager.wasPromptShown()) return;
+        if (!ConfigMigrationManager.needsResetPrompt()) return;
+
+        event.setNewScreen(new ConfigResetScreen(event.getScreen()));
     }
 
     @SubscribeEvent
