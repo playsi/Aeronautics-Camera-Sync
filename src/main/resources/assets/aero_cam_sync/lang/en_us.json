@@ -18,6 +18,12 @@
   "aero_cam_sync.configuration.smoothSpeed.tooltip": "Interpolation speed per frame. 0.0 = instant, 9999 = never",
   "aero_cam_sync.configuration.minNormalY": "Max Tilt Threshold",
   "aero_cam_sync.configuration.minNormalY.tooltip": "Maximum camera tilt angle (0.0 = any, 1.0 = flat only)",
+  "aero_cam_sync.configuration.camera_smooth_mode": "Camera smooth mode",
+  "aero_cam_sync.configuration.camera_smooth_mode.tooltip": "How camera moves",
+  "aero_cam_sync.configuration.camera_smooth_mode.linear": "1",
+  "aero_cam_sync.configuration.camera_smooth_mode.constant": "2",
+  "aero_cam_sync.configuration.camera_smooth_mode.advanced": "3",
+
 
   "aero_cam_sync.configuration.raycast": "Raycasts",
   "aero_cam_sync.configuration.count": "Raycast Count",
@@ -58,6 +64,11 @@
   "aero_cam_sync.configuration.toggleKey.tooltip": "bind key",
   "aero_cam_sync.configuration.openConfigKey": "Open this window",
   "aero_cam_sync.configuration.openConfigKey.tooltip": "bind key",
+
+  "screen.aero_cam_sync.config_reset.title": "Aeronautics Camera Sync — Config Reset",
+  "screen.aero_cam_sync.config_reset.body": "Your config file is outdated and may cause issues. Reset it to defaults?",
+  "screen.aero_cam_sync.config_reset.yes": "Reset",
+  "screen.aero_cam_sync.config_reset.no": "Ignore",
 
   "aero_cam_sync.configuration.pickRaysSec": "Open this window",
   "aero_cam_sync.configuration.pickRaysSec.tooltip": "bind key",
