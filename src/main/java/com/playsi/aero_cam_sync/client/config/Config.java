@@ -38,9 +38,6 @@ public class Config {
             BUILDER.comment("Maximum tilt threshold (0.0 - 1.0)")
                     .defineInRange("minNormalY", 0.8, 0.0, 1.0);
 
-    public static final ModConfigSpec.EnumValue<CameraSmoothMode> CAMERA_SMOOTH_MODE =
-            BUILDER.defineEnum("CameraSmoothMode", CameraSmoothMode.ADVANCED);
-
     // ── Raycast ────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.IntValue RAYCAST_COUNT =
             BUILDER.comment("Number of raycasts (10 is usually enough)")
@@ -82,7 +79,7 @@ public class Config {
 
 
     // ── Meta ──────────────────────────────────────────────────────────────────
-    public static final int CURRENT_CONFIG_SCHEMA = 2; // breaking changes
+    public static final int CURRENT_CONFIG_SCHEMA = 3; // breaking changes
 
     public static final ModConfigSpec.IntValue CONFIG_SCHEMA_VERSION =
             BUILDER.comment(
