@@ -20,6 +20,7 @@ public final class CameraController {
     private CameraController() {}
 
     private static final Quaternionf smoothedTilt = new Quaternionf();
+    private static boolean wasApplyingTilt = false;
 
     // -------------------------------------------------------------------------
     // Публичный API
@@ -33,12 +34,26 @@ public final class CameraController {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
 
+        if (!Config.MOD_ENABLED.get()) return false;
+
         if (!Config.ALLOW_3RD_PERSON.get()
                 && !mc.options.getCameraType().isFirstPerson())
             return false;
 
         return player != null
                 && player.getVehicle() == null;
+    }
+
+    /**
+     * Вызывать в начале каждого кадра ПЕРЕД updateSmoothedTilt.
+     * Сбрасывает тилт если мод только что "включился" после паузы.
+     */
+    public static void tickApplyState() {
+        boolean applying = shouldApplyTilt();
+        if (applying && !wasApplyingTilt) {
+            smoothedTilt.identity();
+        }
+        wasApplyingTilt = applying;
     }
 
     /**

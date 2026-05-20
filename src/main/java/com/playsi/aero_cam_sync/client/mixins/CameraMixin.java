@@ -26,6 +26,8 @@ public abstract class CameraMixin {
             boolean detached, boolean thirdPersonReverse,
             float partialTick, CallbackInfo ci) {
 
+        CameraController.tickApplyState();
+
         if (!Config.MOD_ENABLED.get()) return;
         if (!CameraController.shouldApplyTilt()) return;
 
