@@ -33,6 +33,11 @@
   "aero_cam_sync.configuration.pickRays": "Показать лучи выбора",
   "aero_cam_sync.configuration.pickRays.tooltip": "Лучи выбора",
 
+  "screen.aero_cam_sync.config_reset.title": "Aeronautics Camera Sync — Сброс конфигурации",
+  "screen.aero_cam_sync.config_reset.body": "Файл настроек устарел и может вызвать проблемы. Сбросить до значений по умолчанию?",
+  "screen.aero_cam_sync.config_reset.yes": "Сбросить",
+  "screen.aero_cam_sync.config_reset.no": "Игнорировать",
+
   "key.aero_cam_sync.toggle": "Переключить наклон камеры",
   "key.category.aero_cam_sync": "Aeronautics Camera Sync",
   "msg.aero_cam_sync.enabled": "§aНаклон камеры: ВКЛ",
