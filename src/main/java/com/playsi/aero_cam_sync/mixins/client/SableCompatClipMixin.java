@@ -1,4 +1,4 @@
-package com.playsi.aero_cam_sync.client.mixins;
+package com.playsi.aero_cam_sync.mixins.client;
 
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.utils.ClipShifter;
