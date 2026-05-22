@@ -19,7 +19,7 @@ public final class CameraController {
 
     private CameraController() {}
 
-    private static final Quaternionf smoothedTilt = new Quaternionf();
+    static final Quaternionf smoothedTilt = new Quaternionf();
     private static boolean wasApplyingTilt = false;
 
     // -------------------------------------------------------------------------

@@ -4,11 +4,13 @@
   "package": "com.playsi.aero_cam_sync.client.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+
   ],
   "client": [
     "CameraMixin",
-    "GameRendererPickMixin"
-
+    "EntityLookMixin",
+    "GameRendererPickMixin",
+    "SableCompatClipMixin"
   ],
   "injectors": {
     "defaultRequireValue": 1

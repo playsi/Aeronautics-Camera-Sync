@@ -11,8 +11,6 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.*;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,38 +24,33 @@ public abstract class GameRendererPickMixin {
 
     @Inject(method = "pick", at = @At("TAIL"))
     private void recalculateTiltedPick(float partialTick, CallbackInfo ci) {
+
+        if (!Config.isLoaded()) return;
+
         if (!Config.MOD_ENABLED.get() || !CameraController.shouldApplyTilt()) return;
-        if (!Config.MODIFY_CAMERA_ROT.get() && !Config.MODIFY_CAMERA_POS.get()) return;
+
+        // Если позиция камеры НЕ смещена — EntityLookMixin уже всё сделал, выходим
+        if (!Config.MODIFY_CAMERA_POS.get()) return;
 
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
         if (!mc.options.getCameraType().isFirstPerson()) return;
-
-        Quaternionf tilt = CameraController.getSmoothedTilt();
         if (player == null || mc.level == null) return;
 
+        // Стартуем из реальной (смещённой) позиции камеры
         Vec3 eyes = mc.gameRenderer.getMainCamera().getPosition();
 
-        Vec3 vanillaLook = player.getViewVector(partialTick);
-        Vector3f look = new Vector3f(
-                (float) vanillaLook.x,
-                (float) vanillaLook.y,
-                (float) vanillaLook.z
-        );
-        tilt.transform(look);
-        Vec3 tiltedLook = new Vec3(look.x, look.y, look.z);
+        // getViewVector уже tilted через EntityLookMixin — НЕ трансформируем снова
+        Vec3 look = player.getViewVector(partialTick);
 
-        double reach = mc.player.blockInteractionRange();
-        Vec3 endPoint = eyes.add(tiltedLook.scale(reach));
+        double reach = player.blockInteractionRange();
+        Vec3 endPoint = eyes.add(look.scale(reach));
 
         if (Config.DEBUG_PICK_RAYS.get()) {
-            Vec3 vanillaEnd = eyes.add(vanillaLook.scale(reach));
-            DebugRayRenderer.submitPickRay(eyes, vanillaEnd, 0.5f, 0.5f, 0.5f);
+            Vec3 vanillaEyes = player.getEyePosition(partialTick);
+            Vec3 vanillaEnd = vanillaEyes.add(look.scale(reach));
+            DebugRayRenderer.submitPickRay(vanillaEyes, vanillaEnd, 0.5f, 0.5f, 0.5f);
             DebugRayRenderer.submitPickRay(eyes, endPoint, 1.0f, 1.0f, 0.0f);
-        }
-
-        if (!Config.MODIFY_CAMERA_ROT.get() && Config.MODIFY_CAMERA_POS.get()) {
-            endPoint = eyes.add(vanillaLook.scale(reach));
         }
 
         BlockHitResult blockHit = mc.level.clip(new ClipContext(
@@ -67,9 +60,7 @@ public abstract class GameRendererPickMixin {
                 player
         ));
 
-        AABB searchBox = player.getBoundingBox()
-                .expandTowards(tiltedLook.scale(reach))
-                .inflate(1.0);
+        AABB searchBox = new AABB(eyes, endPoint).inflate(1.0);
 
         EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
                 player, eyes, endPoint, searchBox,
