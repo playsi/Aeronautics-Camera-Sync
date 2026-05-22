@@ -1,4 +1,4 @@
-package com.playsi.aero_cam_sync.client.mixins;
+package com.playsi.aero_cam_sync.mixins.client;
 
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.utils.CameraController;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(Entity.class)
+@Mixin(value = Entity.class, priority = 1300)
 public abstract class EntityLookMixin {
 
     @Inject(method = "getViewVector", at = @At("RETURN"), cancellable = true)

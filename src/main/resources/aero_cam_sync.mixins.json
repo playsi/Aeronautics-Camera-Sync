@@ -1,16 +1,15 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "com.playsi.aero_cam_sync.client.mixins",
+  "package": "com.playsi.aero_cam_sync.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-
   ],
   "client": [
-    "CameraMixin",
-    "EntityLookMixin",
-    "GameRendererPickMixin",
-    "SableCompatClipMixin"
+    "client.CameraMixin",
+    "client.EntityLookMixin",
+    "client.GameRendererPickMixin",
+    "client.SableCompatClipMixin"
   ],
   "injectors": {
     "defaultRequireValue": 1
