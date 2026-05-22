@@ -88,4 +88,13 @@ public class Config {
             ).defineInRange("configSchemaVersion", 0, 0, Integer.MAX_VALUE);
 
     public static final ModConfigSpec SPEC = BUILDER.build();
+
+    public static boolean isLoaded() {
+        try {
+            MOD_ENABLED.get();
+            return true;
+        } catch (IllegalStateException e) {
+            return false;
+        }
+    }
 }
