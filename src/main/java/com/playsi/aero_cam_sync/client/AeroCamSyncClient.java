@@ -8,6 +8,7 @@ import com.playsi.aero_cam_sync.client.config.alert.ConfigMigrationManager;
 import com.playsi.aero_cam_sync.client.config.alert.ConfigResetScreen;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import com.playsi.aero_cam_sync.network.HandshakePacket;
+import com.playsi.aero_cam_sync.network.Payload.TiltSyncPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
@@ -26,11 +27,13 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Quaternionf;
 
 import java.nio.file.Files;
 import java.util.Objects;
 
 import static com.playsi.aero_cam_sync.AeroCamSync.MODID;
+
 
 @Mod(value = MODID, dist = Dist.CLIENT)
 @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
@@ -72,68 +75,79 @@ public class AeroCamSyncClient {
         event.setNewScreen(new ConfigResetScreen(event.getScreen()));
     }
 
-    @SubscribeEvent
-    static void onClientConnectedToServer(ClientPlayerNetworkEvent.LoggingIn event) {
-        SideManager.reset();
-
-        if (Config.IGNORE_SERVER.get()) {
-            SideManager.setSide(SideManager.Side.CLIENT_ONLY);
-            if (Config.DEBUG_MESSAGES.get()) {
-                AeroCamSync.LOGGER.info("[AeroCamSync] IGNORE_SERVER enabled, skipping handshake -> CLIENT_ONLY");
-            }
-            return;
-        }
-
-        pendingHandshake = true;
-        if (Config.DEBUG_MESSAGES.get()) {
-            AeroCamSync.LOGGER.info("[AeroCamSync] Login detected, handshake scheduled for next tick");
-        }
-    }
-
-    @SubscribeEvent
-    static void onClientDisconnected(ClientPlayerNetworkEvent.LoggingOut event) {
-        pendingHandshake = false;
-        SideManager.reset();
-        if (Config.DEBUG_MESSAGES.get()) {
-            AeroCamSync.LOGGER.info("[AeroCamSync] Disconnected, SideManager reset");
-        }
-    }
+//    @SubscribeEvent
+//    static void onClientConnectedToServer(ClientPlayerNetworkEvent.LoggingIn event) {
+//        SideManager.reset();
+//
+//        if (Config.IGNORE_SERVER.get()) {
+//            SideManager.setSide(SideManager.Side.CLIENT_ONLY);
+//            if (Config.DEBUG_MESSAGES.get()) {
+//                AeroCamSync.LOGGER.info("[AeroCamSync] IGNORE_SERVER enabled, skipping handshake -> CLIENT_ONLY");
+//            }
+//            return;
+//        }
+//
+//        if (Minecraft.getInstance().hasSingleplayerServer()) {
+//            SideManager.setSide(SideManager.Side.CLIENT_SERVER);
+//            if (Config.DEBUG_MESSAGES.get())
+//                AeroCamSync.LOGGER.info("[AeroCamSync] Singleplayer detected -> CLIENT_SERVER (direct)");
+//            return;
+//        }
+//
+//        pendingHandshake = true;
+//    }
+//
+//
+//    @SubscribeEvent
+//    static void onClientDisconnected(ClientPlayerNetworkEvent.LoggingOut event) {
+//        pendingHandshake = false;
+//        SideManager.reset();
+//        if (Config.DEBUG_MESSAGES.get()) {
+//            AeroCamSync.LOGGER.info("[AeroCamSync] Disconnected, SideManager reset");
+//        }
+//    }
 
     @SubscribeEvent
     static void onClientTick(ClientTickEvent.Pre event) {
+        Minecraft mc = Minecraft.getInstance();
         // Отправляем handshake на первом тике после логина
-        if (pendingHandshake) {
-            pendingHandshake = false;
-
-            Minecraft mc = Minecraft.getInstance();
-            if (mc.getConnection() != null) {
-                boolean serverHasMod = mc.getConnection()
-                        .getConnectionType()
-                        .isNeoForge();
-
-                // Дополнительно проверяем через negotiated channels
-                boolean channelAvailable = mc.getConnection()
-                        .hasChannel(HandshakePacket.TYPE);
-
-                if (channelAvailable) {
-                    PacketDistributor.sendToServer(new HandshakePacket());
-                    if (Config.DEBUG_MESSAGES.get()) {
-                        AeroCamSync.LOGGER.info("[AeroCamSync] Handshake sent to server (NeoForge: {})", serverHasMod);
-                    }
-                    // SideManager переключится в CLIENT_SERVER когда придёт HandshakeResponsePacket
-                } else {
-                    SideManager.setSide(SideManager.Side.CLIENT_ONLY);
-                    if (Config.DEBUG_MESSAGES.get()) {
-                        AeroCamSync.LOGGER.info("[AeroCamSync] Channel not available on server -> CLIENT_ONLY");
-                    }
-                }
-            } else {
-                SideManager.setSide(SideManager.Side.CLIENT_ONLY);
-                if (Config.DEBUG_MESSAGES.get()) {
-                    AeroCamSync.LOGGER.info("[AeroCamSync] No connection found -> CLIENT_ONLY");
-                }
-            }
-        }
+//        if (pendingHandshake) {
+//            pendingHandshake = false;
+//
+//            if (mc.getConnection() != null) {
+//                boolean serverHasMod = mc.getConnection()
+//                        .getConnectionType()
+//                        .isNeoForge();
+//
+//                // Дополнительно проверяем через negotiated channels
+//                boolean channelAvailable = mc.getConnection()
+//                        .hasChannel(HandshakePacket.TYPE);
+//
+//                if (channelAvailable) {
+//                    PacketDistributor.sendToServer(new HandshakePacket());
+//                    if (Config.DEBUG_MESSAGES.get()) {
+//                        AeroCamSync.LOGGER.info("[AeroCamSync] Handshake sent to server (NeoForge: {})", serverHasMod);
+//                    }
+//                    // SideManager переключится в CLIENT_SERVER когда придёт HandshakeResponsePacket
+//                } else {
+//                    SideManager.setSide(SideManager.Side.CLIENT_ONLY);
+//                    if (Config.DEBUG_MESSAGES.get()) {
+//                        AeroCamSync.LOGGER.info("[AeroCamSync] Channel not available on server -> CLIENT_ONLY");
+//                    }
+//                }
+//            } else {
+//                SideManager.setSide(SideManager.Side.CLIENT_ONLY);
+//                if (Config.DEBUG_MESSAGES.get()) {
+//                    AeroCamSync.LOGGER.info("[AeroCamSync] No connection found -> CLIENT_ONLY");
+//                }
+//            }
+//        }
+//
+//        if (mc.player != null && mc.level != null) {
+//            if (SideManager.isClientServer() || mc.hasSingleplayerServer()) {
+//                SideManager.sendTiltToServer();
+//            }
+//        }
 
         // enable disable camera sync
         while (KeyBindings.TOGGLE.consumeClick()) {
@@ -141,7 +155,7 @@ public class AeroCamSyncClient {
             Config.MOD_ENABLED.set(newValue);
             DebugRayRenderer.clear();
 
-            Minecraft mc = Minecraft.getInstance();
+
             if (mc.player != null) {
                 String msgKey = newValue ? "msg.aero_cam_sync.enabled" : "msg.aero_cam_sync.disabled";
                 mc.player.displayClientMessage(Component.translatable(msgKey), true);
@@ -159,10 +173,10 @@ public class AeroCamSyncClient {
 
         // open mod config
         while (KeyBindings.OPEN_CONFIG.consumeClick()) {
-            Minecraft mc = Minecraft.getInstance();
             if (mc.screen == null) {
                 mc.setScreen(new ModConfigScreen(null));
             }
         }
     }
+
 }

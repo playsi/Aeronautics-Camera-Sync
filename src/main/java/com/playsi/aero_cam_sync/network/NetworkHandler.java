@@ -1,5 +1,6 @@
 package com.playsi.aero_cam_sync.network;
 
+import com.playsi.aero_cam_sync.network.Payload.TiltSyncPayload;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -19,6 +20,12 @@ public class NetworkHandler {
                 HandshakeResponsePacket.TYPE,
                 HandshakeResponsePacket.STREAM_CODEC,
                 HandshakeResponsePacket::handle
+        );
+
+        registrar.playToServer(
+                TiltSyncPayload.TYPE,
+                TiltSyncPayload.CODEC,
+                TiltSyncPayload::handle
         );
     }
 }

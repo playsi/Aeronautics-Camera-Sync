@@ -1,4 +1,4 @@
-package com.playsi.aero_cam_sync.client.mixins;
+package com.playsi.aero_cam_sync.mixins.client;
 
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(value = Camera.class, priority = 10000)
+@Mixin(value = Camera.class, priority = 1300)
 public abstract class CameraMixin {
 
     @Inject(method = "setup", at = @At("TAIL"))
