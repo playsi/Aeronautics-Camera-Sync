@@ -2,6 +2,8 @@ package com.playsi.aero_cam_sync.client.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.util.List;
+
 public class Config {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
@@ -37,6 +39,37 @@ public class Config {
     public static final ModConfigSpec.DoubleValue MIN_NORMAL_Y =
             BUILDER.comment("Maximum tilt threshold (0.0 - 1.0)")
                     .defineInRange("minNormalY", 0.8, 0.0, 1.0);
+
+    // ── Client Blacklist ───────────────────────────────────────────────────────
+    public static final ModConfigSpec.BooleanValue CLIENT_BLACKLIST_ENABLED =
+            BUILDER.comment("Disable camera tilt when player holds a listed item (client-side)")
+                    .define("clientBlacklistEnabled", true);
+
+    public static final ModConfigSpec.BooleanValue CONSIDER_OFFHAND =
+            BUILDER.comment("Consider item in offhand for blacklist checking")
+                    .define("considerOffhand", true);
+
+    public static final ModConfigSpec.ConfigValue<String> ADD_MAINHAND_ITEM_KEY =
+            BUILDER.comment("Add mainhand item to blacklist if not already present")
+                    .define("addMainhandItemKey", "");
+
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> CLIENT_BLACKLIST_IDS =
+            BUILDER.comment("Item IDs that disable camera tilt (client-side), e.g. minecraft:bow")
+                    .defineListAllowEmpty("clientBlacklistIds",
+                            java.util.Collections.emptyList(),
+                            o -> o instanceof String);
+
+    // ── Server Blacklist ───────────────────────────────────────────────────────
+    public static final ModConfigSpec.BooleanValue SERVER_BLACKLIST_ENABLED =
+            BUILDER.comment("Disable camera tilt when player holds a listed item (server-side)")
+                    .define("serverBlacklistEnabled", false);
+
+
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> SERVER_BLACKLIST_IDS =
+            BUILDER.comment("Item IDs that disable camera tilt (server-side), e.g. minecraft:bow")
+                    .defineListAllowEmpty("serverBlacklistIds",
+                            java.util.Collections.emptyList(),
+                            o -> o instanceof String);
 
     // ── Raycast ────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.IntValue RAYCAST_COUNT =

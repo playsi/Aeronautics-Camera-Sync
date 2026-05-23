@@ -21,6 +21,13 @@ public class KeyBindings {
             "key.category.aero_cam_sync"
     );
 
+    public static final KeyMapping ADD_MAINHAND_ITEM = new KeyMapping(
+            "key.aero_cam_sync.add_mainhand_item_client",
+            InputConstants.Type.KEYSYM,
+            InputConstants.UNKNOWN.getValue(),
+            "key.category.aero_cam_sync"
+    );
+
     /** Вызвать после загрузки конфига — применить сохранённые значения */
     public static void loadFromConfig() {
         applyKey(TOGGLE,      Config.TOGGLE_KEY.get());

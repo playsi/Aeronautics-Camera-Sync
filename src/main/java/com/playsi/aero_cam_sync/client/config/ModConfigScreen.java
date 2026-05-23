@@ -1,5 +1,6 @@
 package com.playsi.aero_cam_sync.client.config;
 
+import com.playsi.aero_cam_sync.client.config.categories.*;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigCategory;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList;
 import com.playsi.aero_cam_sync.client.KeyBindings;
@@ -21,154 +22,51 @@ public class ModConfigScreen extends Screen {
     private static final int TAB_Y         = 22;
 
     private final Screen parent;
-    private final List<ConfigCategory> categories = new ArrayList<>();
-    private int activeCategory = 0;
+    private ConfigScreenController controller;
 
     private ConfigOptionList optionList;
     private Button resetButton;
     private Button saveButton;
 
+
+    private final List<String> clientBlacklist = new ArrayList<>();
+
+    private final List<ConfigCategory> categories = new ArrayList<>();
+
+
+    private int activeCategory = 0;
+
+
+    private List<String> clientSnapshot = new ArrayList<>();
+
     public ModConfigScreen(Screen parent) {
         super(Component.translatable("aero_cam_sync.configuration.title"));
         this.parent = parent;
         KeyBindings.syncFromMappings();
-        buildCategories();
-        snapshotAll();
+
+        clientBlacklist.addAll(Config.CLIENT_BLACKLIST_IDS.get());
+
+        rebuild();
     }
 
-    // ── Категории ──────────────────────────────────────────────────────────────
+    private void rebuild() {
+        categories.clear();
+        categories.add(GeneralCategory.build());
+        categories.add(CameraCategory.build());
+        categories.add(ClientBlacklistCategory.build(clientBlacklist, this::rebuildScreen));
+        categories.add(RaycastCategory.build());
+        categories.add(DebugCategory.build());
 
-    private void buildCategories() {
-        // General
-        ConfigCategory general = new ConfigCategory("aero_cam_sync.configuration.general");
-        general.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.enabled",
-                "aero_cam_sync.configuration.enabled.tooltip",
-                Config.MOD_ENABLED));
+        controller = new ConfigScreenController(categories, clientBlacklist);
+        controller.snapshotAll();
+    }
 
-        general.add(new KeyBindEntry(
-                "aero_cam_sync.configuration.toggleKey",
-                "aero_cam_sync.configuration.toggleKey.tooltip",
-                KeyBindings.TOGGLE,
-                Config.TOGGLE_KEY));
-
-        general.add(new SeparatorEntry());
-
-        general.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.allow3rdPerson",
-                "aero_cam_sync.configuration.allow3rdPerson.tooltip",
-                Config.ALLOW_3RD_PERSON));
-
-        general.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.ignoreServer",
-                "aero_cam_sync.configuration.ignoreServer.tooltip",
-                Config.IGNORE_SERVER));
-
-        general.add(new KeyBindEntry(
-                "aero_cam_sync.configuration.openConfigKey",
-                "aero_cam_sync.configuration.openConfigKey.tooltip",
-                KeyBindings.OPEN_CONFIG,
-                Config.OPEN_CONFIG_KEY));
-
-        categories.add(general);
-
-        // Camera
-        ConfigCategory camera = new ConfigCategory("aero_cam_sync.configuration.camera");
-        camera.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.rotateCamera",
-                "aero_cam_sync.configuration.rotateCamera.tooltip",
-                Config.MODIFY_CAMERA_ROT));
-
-        camera.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.moveCamera",
-                "aero_cam_sync.configuration.moveCamera.tooltip",
-                Config.MODIFY_CAMERA_POS));
-
-        camera.add(new SliderEntry(
-                "aero_cam_sync.configuration.smoothSpeed",
-                "aero_cam_sync.configuration.smoothSpeed.tooltip",
-                Config.SMOOTH_SPEED,
-                0.1,  10.0,  0.05,   // sliderMin, sliderMax, step
-                0.0,  9999.0));       // hardMin, hardMax
-
-        camera.add(new SliderEntry(
-                "aero_cam_sync.configuration.minNormalY",
-                "aero_cam_sync.configuration.minNormalY.tooltip",
-                Config.MIN_NORMAL_Y,
-                0.0, 1.0, 0.01,
-                0.0, 1.0));
-
-        camera.add(new SeparatorEntry());
-
-        camera.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.dropCacheOnAllMiss",
-                "aero_cam_sync.configuration.dropCacheOnAllMiss.tooltip",
-                Config.DROP_CACHE_ON_ALL_MISS));
-
-        camera.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.disableOnFlying",
-                "aero_cam_sync.configuration.disableOnFlying.tooltip",
-                Config.DISABLE_ON_FLYING));
-
-
-        categories.add(camera);
-
-        // Raycast
-        ConfigCategory raycast = new ConfigCategory("aero_cam_sync.configuration.raycast");
-        raycast.add(new SliderEntry(
-                "aero_cam_sync.configuration.count",
-                "aero_cam_sync.configuration.count.tooltip",
-                Config.RAYCAST_COUNT,
-                1, 100, 1,       // sliderMin, sliderMax, step
-                1, 10000));      // hardMin, hardMax
-
-        raycast.add(new SliderEntry(
-                "aero_cam_sync.configuration.downLength",
-                "aero_cam_sync.configuration.downLength.tooltip",
-                Config.RAYCAST_DOWN_LENGTH,
-                0.1, 12.0, 0.1,
-                0.1, 12.0));
-
-        raycast.add(new SliderEntry(
-                "aero_cam_sync.configuration.upLength",
-                "aero_cam_sync.configuration.upLength.tooltip",
-                Config.RAYCAST_UP_LENGTH,
-                -1.0, 1.0, 0.05,
-                -1.0, 1.0));
-
-        categories.add(raycast);
-
-
-        // Debug
-        ConfigCategory debug = new ConfigCategory("aero_cam_sync.configuration.debug");
-        debug.add(new SeparatorEntry("Samples ray"));
-
-        debug.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.rays",
-                "aero_cam_sync.configuration.rays.tooltip",
-                Config.DEBUG_RAYS));
-
-        debug.add(new SeparatorEntry("Pick ray"));
-
-        debug.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.pickRays",
-                "aero_cam_sync.configuration.pickRays.tooltip",
-                Config.DEBUG_PICK_RAYS));
-
-        debug.add(new SliderEntry(
-                "aero_cam_sync.configuration.pickRaysTimeSec",
-                "aero_cam_sync.configuration.pickRaysTimeSec.tooltip",
-                Config.PICK_RAYS_TIME_SEC,
-                0.1, 60.0, 0.1,
-                0.01, 600.0));
-
-        debug.add(new SeparatorEntry(""));
-
-        debug.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.debugMessages",
-                "",
-                Config.DEBUG_MESSAGES));
-        categories.add(debug);
+    private void rebuildScreen() {
+        double scroll = optionList != null ? optionList.getScrollAmount() : 0;
+        rebuild();
+        clearWidgets();
+        init();
+        optionList.setScrollAmount(scroll);
     }
 
     // ── Init ───────────────────────────────────────────────────────────────────
@@ -263,17 +161,31 @@ public class ModConfigScreen extends Screen {
         for (ConfigCategory cat : categories)
             for (ConfigOptionList.Entry e : cat.entries())
                 e.saveSnapshot();
+
+        clientSnapshot = new ArrayList<>(clientBlacklist);
     }
 
     private void restoreAll() {
         for (ConfigCategory cat : categories)
             for (ConfigOptionList.Entry e : cat.entries())
                 e.restoreSnapshot();
+
+        clientBlacklist.clear();
+        clientBlacklist.addAll(clientSnapshot);
+        Config.CLIENT_BLACKLIST_IDS.set(new ArrayList<>(clientBlacklist));
     }
 
     private void resetCurrent() {
         for (ConfigOptionList.Entry e : categories.get(activeCategory).entries())
             e.reset();
+
+        int clientIdx = getCategoryIndex("aero_cam_sync.configuration.clientBlacklist");
+
+        if (activeCategory == clientIdx) {
+            clientBlacklist.clear();
+            clientBlacklist.addAll(Config.CLIENT_BLACKLIST_IDS.getDefault());
+            Config.CLIENT_BLACKLIST_IDS.set(new ArrayList<>(clientBlacklist));
+        }
     }
 
     private boolean hasAnyHardViolation() {
@@ -311,11 +223,9 @@ public class ModConfigScreen extends Screen {
 
     @Override
     public void onClose() {
-        restoreAll();
-
+        controller.restoreAll();
         KeyBindings.saveToConfig();
         KeyBindings.loadFromConfig();
-
         this.minecraft.setScreen(parent);
     }
 
@@ -338,12 +248,17 @@ public class ModConfigScreen extends Screen {
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    /** Найти первый слушающий KeyBindEntry среди всех категорий */
     private KeyBindEntry activeKeyBindEntry() {
         for (ConfigCategory cat : categories)
             for (ConfigOptionList.Entry e : cat.entries())
                 if (e instanceof KeyBindEntry kb && kb.isListening())
                     return kb;
         return null;
+    }
+
+    private int getCategoryIndex(String nameKey) {
+        for (int i = 0; i < categories.size(); i++)
+            if (categories.get(i).nameKey().equals(nameKey)) return i;
+        return -1;
     }
 }

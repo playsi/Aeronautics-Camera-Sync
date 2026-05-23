@@ -15,8 +15,52 @@ public class ConfigOptionList extends ContainerObjectSelectionList<ConfigOptionL
 
     public void addPublicEntry(Entry entry) { super.addEntry(entry); }
 
+    @Override
+    protected int getRowTop(int index) {
+        int top = this.getY() + 4 - (int) this.getScrollAmount();
+        for (int i = 0; i < index; i++) {
+            top += this.children().get(i).getItemHeight();
+        }
+        return top;
+    }
+
+    @Override
+    public int getRowBottom(int index) {
+        return getRowTop(index) + this.children().get(index).getItemHeight();
+    }
+
+   @Override
+    public int getMaxScroll() {
+        int contentHeight = children().stream()
+                .mapToInt(Entry::getItemHeight)
+                .sum() + 8;
+        return Math.max(0, contentHeight - (this.height - 8));
+    }
+
     @Override public int getRowWidth()             { return this.width - 20; }
     @Override protected int getScrollbarPosition() { return this.getRight() - 6; }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (!this.isMouseOver(mouseX, mouseY)) return false;
+
+        // Ищем entry через наши getRowTop/getRowBottom вместо ванильного itemHeight
+        for (int i = 0; i < children().size(); i++) {
+            int top    = getRowTop(i);
+            int bottom = getRowBottom(i);
+            if (mouseY >= top && mouseY < bottom) {
+                Entry entry = children().get(i);
+                if (entry.mouseClicked(mouseX, mouseY, button)) {
+                    setFocused(entry);
+                    setDragging(true);
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        return false;
+    }
 
     // ═══════════════════════════════════════════════════════════════════════
     // Base Entry — общий контракт для всех строк списка
@@ -45,5 +89,7 @@ public class ConfigOptionList extends ContainerObjectSelectionList<ConfigOptionL
             gfx.drawString(mc.font, Component.translatable(labelKey),
                     x + 4, y + (ENTRY_H - 8) / 2, 0xFFFFFF, false);
         }
+
+        public int getItemHeight() { return ENTRY_H; }
     }
 }
