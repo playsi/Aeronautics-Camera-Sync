@@ -2,6 +2,7 @@ package com.playsi.aero_cam_sync.mixins.client;
 
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
+import com.playsi.aero_cam_sync.client.utils.BlacklistHandle;
 import com.playsi.aero_cam_sync.client.utils.CameraController;
 import com.playsi.aero_cam_sync.client.utils.SubLevelTracker;
 import com.playsi.aero_cam_sync.client.utils.SurfaceRaycaster;
@@ -39,7 +40,12 @@ public abstract class CameraMixin {
         DebugRayRenderer.clear();
 
         Vector3f surfaceNormal = null;
-        if (subLevel != null) {
+
+        boolean banned =
+                Config.CLIENT_BLACKLIST_ENABLED.get() &&
+                        BlacklistHandle.holdBannedItem(Config.CLIENT_BLACKLIST_IDS.get());
+
+        if (!banned && subLevel != null) {
             Pose3dc pose = subLevel.renderPose(partialTick);
             surfaceNormal = SurfaceRaycaster.getSurfaceNormal(subLevel, pose);
 

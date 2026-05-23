@@ -33,6 +33,7 @@ public final class CameraController {
     public static boolean shouldApplyTilt() {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
+        if (player == null) return false;
 
         if (!Config.MOD_ENABLED.get()) return false;
 
@@ -40,8 +41,7 @@ public final class CameraController {
                 && !mc.options.getCameraType().isFirstPerson())
             return false;
 
-        return player != null
-                && player.getVehicle() == null;
+        return player.getVehicle() == null;
     }
 
     /**
