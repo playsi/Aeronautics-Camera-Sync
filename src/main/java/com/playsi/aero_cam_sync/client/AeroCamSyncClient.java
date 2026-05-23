@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.util.Objects;
 
 import static com.playsi.aero_cam_sync.AeroCamSync.MODID;
+import static com.playsi.aero_cam_sync.client.utils.BlacklistHandle.handleBlacklistToggle;;
 
 
 @Mod(value = MODID, dist = Dist.CLIENT)
@@ -176,6 +177,9 @@ public class AeroCamSyncClient {
             if (mc.screen == null) {
                 mc.setScreen(new ModConfigScreen(null));
             }
+        }
+        while (KeyBindings.ADD_MAINHAND_ITEM.consumeClick()) {
+            handleBlacklistToggle(mc.player);
         }
     }
 
