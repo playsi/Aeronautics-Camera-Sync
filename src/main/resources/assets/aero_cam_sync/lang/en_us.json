@@ -23,6 +23,34 @@
   "aero_cam_sync.configuration.disableOnFlying": "Disable on flying",
   "aero_cam_sync.configuration.disableOnFlying.tooltip": "Disable tilt when player start flying (creative, spectator)",
 
+  "aero_cam_sync.configuration.clientBlacklist": "Item Blacklist",
+  "aero_cam_sync.configuration.clientBlacklist.enabled": "Disable camera tilt for blacklisted items",
+  "aero_cam_sync.configuration.clientBlacklist.enabled.tooltip": "Disable camera tilt when holding a listed item (mod installed only on client)",
+  "aero_cam_sync.configuration.considerOffhand": "Check Offhand",
+  "aero_cam_sync.configuration.considerOffhand.tooltip": "Apply blacklist to offhand items",
+  "aero_cam_sync.configuration.addMainhandItemKey": "Toggle Blacklist Item Key",
+  "aero_cam_sync.configuration.addMainhandItemKey.tooltip": "Add/remove held item to blacklist",
+
+  "aero_cam_sync.configuration.clientBlacklist.separator": "Client Blacklist",
+
+
+  "aero_cam_sync.configuration.serverBlacklist": "Server Blacklist",
+  "aero_cam_sync.configuration.serverBlacklist.enabled": "Enable Server Blacklist",
+  "aero_cam_sync.configuration.serverBlacklist.enabled.tooltip": "Disable camera tilt when holding a listed item (mod installed on server)",
+  "aero_cam_sync.configuration.list.add":    "+ Add",
+  "aero_cam_sync.configuration.list.remove": "Remove entry",
+  "aero_cam_sync.configuration.list.placeholder": "minecraft:item_id",
+  "aero_cam_sync.configuration.list.empty": "",
+
+  "aero_cam_sync.configuration.list.tooltip.ok":        "ID: %s",
+  "aero_cam_sync.configuration.list.tooltip.not_found": "Not found: %s",
+  "aero_cam_sync.configuration.list.tooltip.empty":     "No item selected",
+  "aero_cam_sync.configuration.list.tooltip.error":     "Render error:",
+
+  "msg.aero_cam_sync.no_item_in_hand": "No item in main hand",
+  "msg.aero_cam_sync.added_to_blacklist": "Added %s to blacklist",
+  "msg.aero_cam_sync.removed_from_blacklist": "Removed %s from blacklist",
+
   "aero_cam_sync.configuration.raycast": "Raycasts",
   "aero_cam_sync.configuration.count": "Raycast Count",
   "aero_cam_sync.configuration.count.tooltip": "Number of rays used to sample the surface",
@@ -63,6 +91,8 @@
   "key.category.aero_cam_sync": "Aeronautics Camera Sync",
   "msg.aero_cam_sync.enabled": "§aCam Tilt: ON",
   "msg.aero_cam_sync.disabled": "§cCam Tilt: OFF",
+
+  "key.aero_cam_sync.open_config": "Open mod Config",
 
   "screen.aero_cam_sync.config_reset.title": "Aeronautics Camera Sync — Config Reset",
   "screen.aero_cam_sync.config_reset.body1": "Your config file is outdated and may cause issues.",
