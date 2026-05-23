@@ -2,9 +2,12 @@ package com.playsi.aero_cam_sync.client.config;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Config {
+    private static final List<String> DEFAULT_CLIENT_BLACKLIST_IDS = List.of("minecraft:bow", "minecraft:crossbow", "minecraft:fishing_rod", "minecraft:snowball", "minecraft:egg", "minecraft:wind_charge", "minecraft:ender_pearl", "minecraft:brush", "minecraft:trident", "minecraft:bucket", "minecraft:water_bucket", "minecraft:lava_bucket", "minecraft:cod_bucket", "minecraft:tropical_fish_bucket", "minecraft:pufferfish_bucket", "minecraft:salmon_bucket", "minecraft:axolotl_bucket", "minecraft:tadpole_bucket", "minecraft:splash_potion", "minecraft:lingering_potion", "minecraft:experience_bottle", "create:potato_cannon", "create:honey_bucket", "create:chocolate_bucket", "create:handheld_worldshaper", "create:schematic_and_quill", "create:schematic", "simulated:plunger_launcher", "aeronautics:levitite_blend_bucket");
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     // ── General ────────────────────────────────────────────────────────────────
@@ -56,7 +59,7 @@ public class Config {
     public static final ModConfigSpec.ConfigValue<List<? extends String>> CLIENT_BLACKLIST_IDS =
             BUILDER.comment("Item IDs that disable camera tilt (client-side), e.g. minecraft:bow")
                     .defineListAllowEmpty("clientBlacklistIds",
-                            java.util.Collections.emptyList(),
+                            DEFAULT_CLIENT_BLACKLIST_IDS,
                             o -> o instanceof String);
 
     // ── Server Blacklist ───────────────────────────────────────────────────────
