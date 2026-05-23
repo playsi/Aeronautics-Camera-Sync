@@ -13,6 +13,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,19 +29,35 @@ import java.util.List;
  * </pre>
  * Содержит вложенный {@link ItemIDElement} — компонент с EditBox
  * и выпадающим списком автодополнения.
+ * <p>
+ * Три состояния иконки:
+ * <ul>
+ *   <li>{@link IconState#OK}        — предмет найден, рендерится нормально</li>
+ *   <li>{@link IconState#NOT_FOUND} — ID не найден в реестре → серый «?»</li>
+ *   <li>{@link IconState#ERROR}     — исключение при рендере → красный «!»,
+ *                                     тултип с текстом исключения</li>
+ * </ul>
  */
 public class ListEntry extends ConfigOptionList.Entry {
 
     /** Высота одной строки blacklist-элемента. */
     public static final int H = 64;
 
-    private static final int ICON_SIZE  = 48; // px, квадрат превью
+    private static final int ICON_SIZE  = 48;
     private static final int PAD        =  4;
     private static final int BTN_DEL_W  = 18;
     private static final int BTN_DEL_H  = 18;
     private static final int SEP_H      =  1;
 
-    // ── состояние ────────────────────────────────────────────────────────────
+    // ── состояние иконки ──────────────────────────────────────────────────────
+
+    private enum IconState { OK, NOT_FOUND, ERROR }
+
+    private IconState iconState = IconState.NOT_FOUND;
+    /** Текст последнего исключения — показывается в тултипе при IconState.ERROR */
+    private String lastError = "";
+
+    // ── данные строки ─────────────────────────────────────────────────────────
 
     private String value;
     private final java.util.function.Consumer<String> onChanged;
@@ -51,10 +68,14 @@ public class ListEntry extends ConfigOptionList.Entry {
     private final ItemIDElement itemIDElement;
     private final Button deleteBtn;
 
-    // ── кеш ──────────────────────────────────────────────────────────────────
+    // ── кеш иконки ───────────────────────────────────────────────────────────
 
     private ItemStack cachedStack = ItemStack.EMPTY;
     private String    cachedId    = "";
+
+    // ── геометрия (заполняется в render) ─────────────────────────────────────
+
+    private int iconX, iconY;
 
     // ── конструктор ───────────────────────────────────────────────────────────
 
@@ -79,30 +100,40 @@ public class ListEntry extends ConfigOptionList.Entry {
         updateCache(initialValue);
     }
 
-    // ── превью-стек ───────────────────────────────────────────────────────────
+    // ── кеш ──────────────────────────────────────────────────────────────────
 
-    private void invalidateCache() { cachedId = null; } // null = грязный
+    private void invalidateCache() { cachedId = null; }
 
     private void updateCache(String id) {
-        if (id.equals(cachedId)) return;
-        cachedId = id;
+        if (id == null || id.equals(cachedId)) return;
+        cachedId   = id;
+        lastError  = "";
+        iconState  = IconState.NOT_FOUND;
+        cachedStack = ItemStack.EMPTY;
+
+        if (id.isEmpty()) return;
+
         try {
             ResourceLocation rl = ResourceLocation.tryParse(id);
             if (rl != null && BuiltInRegistries.ITEM.containsKey(rl)) {
                 Item item = BuiltInRegistries.ITEM.get(rl);
-                cachedStack = item != Items.AIR ? new ItemStack(item) : ItemStack.EMPTY;
-            } else {
-                cachedStack = ItemStack.EMPTY;
+                if (item != null && item != Items.AIR) {
+                    cachedStack = new ItemStack(item);
+                    iconState   = IconState.OK;
+                }
+                // rl найден, но это AIR → NOT_FOUND (иконка останется пустой)
             }
+            // rl == null или не в реестре → NOT_FOUND
         } catch (Exception e) {
-            cachedStack = ItemStack.EMPTY;
+            lastError = e.getClass().getSimpleName() + ": " + e.getMessage();
+            iconState = IconState.ERROR;
         }
     }
 
     // ── render ────────────────────────────────────────────────────────────────
 
     @Override
-    public int getItemHeight() { return H; } // 64
+    public int getItemHeight() { return H; }
 
     @Override
     public void render(GuiGraphics gfx, int index, int top, int left,
@@ -111,49 +142,38 @@ public class ListEntry extends ConfigOptionList.Entry {
 
         Minecraft mc = Minecraft.getInstance();
 
-        // Грязный кеш — обновить
         if (cachedId == null) updateCache(value);
 
         // ── превью-рамка ─────────────────────────────────────────────────────
-        int iconX = left + PAD;
-        int iconY = top  + (H - ICON_SIZE) / 2;
+        iconX = left + PAD;
+        iconY = top  + (H - ICON_SIZE) / 2;
 
-        // фон рамки
-        gfx.fill(iconX - 1, iconY - 1, iconX + ICON_SIZE + 1, iconY + ICON_SIZE + 1, 0xFF555555);
-        gfx.fill(iconX,     iconY,     iconX + ICON_SIZE,     iconY + ICON_SIZE,     0xFF1A1A1A);
+        int borderColor = (iconState == IconState.ERROR) ? 0xFF8B1A1A : 0xFF555555;
+        int bgColor     = (iconState == IconState.ERROR) ? 0xFF2A0A0A : 0xFF1A1A1A;
+        gfx.fill(iconX - 1, iconY - 1, iconX + ICON_SIZE + 1, iconY + ICON_SIZE + 1, borderColor);
+        gfx.fill(iconX,     iconY,     iconX + ICON_SIZE,     iconY + ICON_SIZE,     bgColor);
 
-        if (!cachedStack.isEmpty()) {
-            // Рендер иконки предмета масштабированно (16→ICON_SIZE)
-            float scale = ICON_SIZE / 16f;
-            gfx.pose().pushPose();
-            gfx.pose().translate(iconX, iconY, 0);
-            gfx.pose().scale(scale, scale, 1f);
-            gfx.renderItem(cachedStack, 0, 0);
-            gfx.pose().popPose();
-        } else {
-            // Плейсхолдер: «?» по центру рамки
-            gfx.drawCenteredString(mc.font, "?",
-                    iconX + ICON_SIZE / 2,
-                    iconY + (ICON_SIZE - 8) / 2,
-                    0x888888);
+        renderIcon(gfx, mc);
+
+        // ── тултип при наведении на рамку иконки ─────────────────────────────
+        if (mouseX >= iconX && mouseX <= iconX + ICON_SIZE
+                && mouseY >= iconY && mouseY <= iconY + ICON_SIZE) {
+            renderIconTooltip(gfx, mc, mouseX, mouseY);
         }
 
         // ── правая колонка ────────────────────────────────────────────────────
         int colX    = iconX + ICON_SIZE + PAD;
         int colW    = left + width - colX - PAD;
 
-        // верхняя половина: EditBox + кнопка удаления
         int topRowH = (H - SEP_H) / 2;
         int editH   = 16;
         int editY   = top + (topRowH - editH) / 2;
 
-        // кнопка «✕»
         int delX = left + width - PAD - BTN_DEL_W;
         deleteBtn.setX(delX);
         deleteBtn.setY(editY + (editH - BTN_DEL_H) / 2);
         deleteBtn.render(gfx, mouseX, mouseY, delta);
 
-        // ItemIDElement (EditBox + dropdown)
         int editW = delX - colX - PAD;
         itemIDElement.layout(colX, editY, editW, editH);
         itemIDElement.render(gfx, mouseX, mouseY, delta);
@@ -162,7 +182,7 @@ public class ListEntry extends ConfigOptionList.Entry {
         int sepY = top + topRowH;
         gfx.fill(colX, sepY, left + width - PAD, sepY + SEP_H, 0xFF444444);
 
-        // ── нижняя половина: translatable название предмета ──────────────────
+        // ── нижняя половина: название предмета ───────────────────────────────
         int nameY = iconY + ICON_SIZE - (ICON_SIZE / 4) - 4;
 
         Component name;
@@ -174,17 +194,81 @@ public class ListEntry extends ConfigOptionList.Entry {
             name = Component.literal(value).withStyle(s -> s.withColor(0xFF5555));
         }
 
-        gfx.drawString(mc.font, name,
-                colX + 2, nameY,  // +2 чуть правее
-                0xAAAAAA, false);
+        gfx.drawString(mc.font, name, colX + 2, nameY, 0xAAAAAA, false);
     }
 
+    // ── рендер иконки ─────────────────────────────────────────────────────────
+
+    private void renderIcon(GuiGraphics gfx, Minecraft mc) {
+        switch (iconState) {
+            case OK -> renderItemIcon(gfx, mc);
+            case NOT_FOUND -> drawPlaceholder(gfx, mc, "?", 0x888888);
+            case ERROR     -> drawPlaceholder(gfx, mc, "!", 0xFF5555);
+        }
+    }
+
+    private void renderItemIcon(GuiGraphics gfx, Minecraft mc) {
+        float scale = ICON_SIZE / 16f;
+        gfx.pose().pushPose();
+        gfx.pose().translate(iconX, iconY, 0);
+        gfx.pose().scale(scale, scale, 1f);
+        boolean ok = false;
+        try {
+            gfx.renderItem(cachedStack, 0, 0);
+            ok = true;
+        } catch (Exception e) {
+            lastError = e.getClass().getSimpleName() + ": " + e.getMessage();
+            iconState = IconState.ERROR;
+        }
+        gfx.pose().popPose();
+
+        if (!ok) {
+            gfx.fill(iconX - 1, iconY - 1, iconX + ICON_SIZE + 1, iconY + ICON_SIZE + 1, 0xFF8B1A1A);
+            gfx.fill(iconX,     iconY,     iconX + ICON_SIZE,     iconY + ICON_SIZE,     0xFF2A0A0A);
+            drawPlaceholder(gfx, mc, "!", 0xFF5555);
+        }
+    }
+
+    private void drawPlaceholder(GuiGraphics gfx, Minecraft mc, String symbol, int color) {
+        gfx.drawCenteredString(mc.font, symbol,
+                iconX + ICON_SIZE / 2,
+                iconY + (ICON_SIZE - 8) / 2,
+                color);
+    }
+
+    // ── тултип иконки ─────────────────────────────────────────────────────────
+
+    private void renderIconTooltip(GuiGraphics gfx, Minecraft mc, int mouseX, int mouseY) {
+        List<Component> lines = new ArrayList<>();
+
+        switch (iconState) {
+            case OK -> {
+                lines.add(cachedStack.getHoverName());
+                lines.add(Component.translatable("aero_cam_sync.configuration.list.tooltip.ok",
+                        value));
+            }
+            case NOT_FOUND -> {
+                if (value.isEmpty()) {
+                    lines.add(Component.translatable("aero_cam_sync.configuration.list.tooltip.empty"));
+                } else {
+                    lines.add(Component.translatable("aero_cam_sync.configuration.list.tooltip.not_found",
+                            value));
+                }
+            }
+            case ERROR -> {
+                lines.add(Component.translatable("aero_cam_sync.configuration.list.tooltip.error"));
+                // Имя класса исключения — отдельной строкой, красным
+                lines.add(Component.literal(lastError).withStyle(s -> s.withColor(0xFF5555)));
+            }
+        }
+
+        gfx.renderTooltip(mc.font, lines, java.util.Optional.empty(), mouseX, mouseY);
+    }
 
     // ── children / narratables ────────────────────────────────────────────────
 
     @Override
     public List<? extends GuiEventListener> children() {
-        // itemIDElement сам является GuiEventListener
         return List.of(itemIDElement, deleteBtn);
     }
 
@@ -200,7 +284,7 @@ public class ListEntry extends ConfigOptionList.Entry {
     @Override public void reset()                    { }
     @Override public boolean hasHardLimitViolation() { return false; }
 
-    // ── геттер для BlacklistListManager ──────────────────────────────────────
+    // ── геттер ───────────────────────────────────────────────────────────────
 
     public String getValue() { return value; }
 }
