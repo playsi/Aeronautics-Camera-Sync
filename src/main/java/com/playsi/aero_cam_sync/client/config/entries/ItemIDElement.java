@@ -125,7 +125,6 @@ public class ItemIDElement implements GuiEventListener, NarratableEntry {
         int dropW = w;
         int dropH = suggestions.size() * ROW_H + DROPDOWN_PAD * 2;
 
-        // фон выпадашки
         gfx.fill(dropX,     dropY,     dropX + dropW,     dropY + dropH,     0xFF111111);
         gfx.fill(dropX - 1, dropY - 1, dropX + dropW + 1, dropY + dropH + 1, 0xFF555555);
         gfx.fill(dropX,     dropY,     dropX + dropW,     dropY + dropH,     0xE8111111);
