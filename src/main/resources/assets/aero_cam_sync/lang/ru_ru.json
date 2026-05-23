@@ -23,6 +23,36 @@
   "aero_cam_sync.configuration.disableOnFlying": "Отключать при полёте",
   "aero_cam_sync.configuration.disableOnFlying.tooltip": "Отключает наклон при полёте (креатив, наблюдатель)",
 
+  "aero_cam_sync.configuration.clientBlacklist": "Чёрный список предметов",
+  "aero_cam_sync.configuration.clientBlacklist.enabled": "Отключать наклон для предметов из списка",
+  "aero_cam_sync.configuration.clientBlacklist.enabled.tooltip": "Отключает наклон камеры при удержании предмета из списка (мод установлен только на клиенте)",
+
+  "aero_cam_sync.configuration.considerOffhand": "Учитывать вторую руку",
+  "aero_cam_sync.configuration.considerOffhand.tooltip": "Применять чёрный список ко второй руке",
+
+  "aero_cam_sync.configuration.addMainhandItemKey": "Клавиша добавления в список",
+  "aero_cam_sync.configuration.addMainhandItemKey.tooltip": "Добавлять/удалять предмет в руке в чёрный список",
+
+  "aero_cam_sync.configuration.clientBlacklist.separator": "Чёрный список (клиент)",
+
+  "aero_cam_sync.configuration.serverBlacklist": "Чёрный список сервера",
+  "aero_cam_sync.configuration.serverBlacklist.enabled": "Включить чёрный список сервера",
+  "aero_cam_sync.configuration.serverBlacklist.enabled.tooltip": "Отключает наклон камеры при удержании предмета из списка (мод установлен на сервере)",
+
+  "aero_cam_sync.configuration.list.add": "+ Добавить",
+  "aero_cam_sync.configuration.list.remove": "Удалить",
+  "aero_cam_sync.configuration.list.placeholder": "minecraft:item_id",
+  "aero_cam_sync.configuration.list.empty": "",
+
+  "aero_cam_sync.configuration.list.tooltip.ok": "ID: %s",
+  "aero_cam_sync.configuration.list.tooltip.not_found": "Не найдено: %s",
+  "aero_cam_sync.configuration.list.tooltip.empty": "Предмет не указан",
+  "aero_cam_sync.configuration.list.tooltip.error": "Ошибка отображения:",
+
+  "msg.aero_cam_sync.no_item_in_hand": "В основной руке нет предмета",
+  "msg.aero_cam_sync.added_to_blacklist": "Предмет %s добавлен в чёрный список",
+  "msg.aero_cam_sync.removed_from_blacklist": "Предмет %s удалён из чёрного списка",
+
   "aero_cam_sync.configuration.raycast": "Рейкасты",
   "aero_cam_sync.configuration.count": "Количество лучей",
   "aero_cam_sync.configuration.count.tooltip": "Число лучей для определения поверхности (стабильное количество 10)",
@@ -64,6 +94,8 @@
   "key.category.aero_cam_sync": "Aeronautics Camera Sync",
   "msg.aero_cam_sync.enabled": "§aНаклон камеры: ВКЛ",
   "msg.aero_cam_sync.disabled": "§cНаклон камеры: ВЫКЛ",
+
+  "key.aero_cam_sync.open_config": "Открыть настройки мода",
 
   "screen.aero_cam_sync.config_reset.title": "Aeronautics Camera Sync — сброс конфигурации",
   "screen.aero_cam_sync.config_reset.body1": "Файл конфигурации устарел и может вызывать ошибки.",
