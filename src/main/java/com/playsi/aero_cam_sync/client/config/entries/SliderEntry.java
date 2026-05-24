@@ -201,6 +201,12 @@ public class SliderEntry extends ConfigOptionList.Entry {
         slider.setExternalValue(Mth.clamp(def, sliderMin, sliderMax));
         editBox.setValue(shortStr(def));
     }
+
+    @Override
+    public void inheritSnapshot(ConfigOptionList.Entry donor) {
+        if (donor instanceof SliderEntry d) this.snapshot = d.snapshot;
+    }
+
     @Override public boolean hasHardLimitViolation() {
         return currentValue < hardMin || currentValue > hardMax;
     }

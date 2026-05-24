@@ -51,7 +51,7 @@ public class ClientBlacklistCategory {
                     () -> {
                         blacklist.remove(idx);
                         Config.CLIENT_BLACKLIST_IDS.set(new ArrayList<>(blacklist));
-                        onRebuild.run(); // ← экран перестраивает себя сам
+                        onRebuild.run();
                     }
             ));
         }

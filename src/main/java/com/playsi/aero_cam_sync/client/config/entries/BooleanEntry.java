@@ -59,5 +59,11 @@ public class BooleanEntry extends ConfigOptionList.Entry {
         config.set(def);
         if (checkbox.selected() != def) checkbox.onPress();
     }
+
+    @Override
+    public void inheritSnapshot(ConfigOptionList.Entry donor) {
+        if (donor instanceof BooleanEntry d) this.snapshot = d.snapshot;
+    }
+
     @Override public boolean hasHardLimitViolation() { return false; }
 }

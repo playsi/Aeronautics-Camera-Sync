@@ -95,5 +95,10 @@ public class ToggleButtonEntry extends ConfigOptionList.Entry {
         button.setMessage(label(def));
     }
 
+    @Override
+    public void inheritSnapshot(ConfigOptionList.Entry donor) {
+        if (donor instanceof ToggleButtonEntry d) this.snapshot = d.snapshot;
+    }
+
     @Override public boolean hasHardLimitViolation() { return false; }
 }
