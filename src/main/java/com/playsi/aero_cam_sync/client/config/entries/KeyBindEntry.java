@@ -180,5 +180,10 @@ public class KeyBindEntry extends ConfigOptionList.Entry {
         hasConflict = false;
     }
 
+    @Override
+    public void inheritSnapshot(ConfigOptionList.Entry donor) {
+        if (donor instanceof KeyBindEntry d) this.snapshot = d.snapshot;
+    }
+
     @Override public boolean hasHardLimitViolation() { return false; }
 }

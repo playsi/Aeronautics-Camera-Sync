@@ -45,8 +45,10 @@ public class ModConfigScreen extends Screen {
         KeyBindings.syncFromMappings();
 
         clientBlacklist.addAll(Config.CLIENT_BLACKLIST_IDS.get());
+        clientSnapshot = new ArrayList<>(clientBlacklist);
 
         rebuild();
+        controller.snapshotAll();
     }
 
     private void rebuild() {
@@ -58,12 +60,26 @@ public class ModConfigScreen extends Screen {
         categories.add(DebugCategory.build());
 
         controller = new ConfigScreenController(categories, clientBlacklist);
-        controller.snapshotAll();
     }
 
     private void rebuildScreen() {
         double scroll = optionList != null ? optionList.getScrollAmount() : 0;
+        List<String> savedClientSnapshot = new ArrayList<>(clientSnapshot);
+
+        List<List<ConfigOptionList.Entry>> oldEntries = new ArrayList<>();
+        for (ConfigCategory cat : categories)
+            oldEntries.add(new ArrayList<>(cat.entries()));
+
         rebuild();
+        clientSnapshot = savedClientSnapshot;
+
+        for (int c = 0; c < Math.min(categories.size(), oldEntries.size()); c++) {
+            List<ConfigOptionList.Entry> oldList = oldEntries.get(c);
+            List<ConfigOptionList.Entry> newList = categories.get(c).entries();
+            for (int i = 0; i < Math.min(oldList.size(), newList.size()); i++)
+                newList.get(i).inheritSnapshot(oldList.get(i));
+        }
+
         clearWidgets();
         init();
         optionList.setScrollAmount(scroll);
@@ -135,8 +151,7 @@ public class ModConfigScreen extends Screen {
         resetButton = Button.builder(
                         Component.translatable("aero_cam_sync.configuration.btn.reset"), btn -> {
                             resetCurrent();
-                            clearWidgets();
-                            init();
+                            rebuildScreen();
                         })
                 .bounds(startX + btnW + gap, btnY, btnW, btnH)
                 .tooltip(Tooltip.create(Component.translatable("aero_cam_sync.configuration.btn.reset.tooltip")))

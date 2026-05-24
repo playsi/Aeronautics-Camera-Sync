@@ -84,6 +84,8 @@ public class ConfigOptionList extends ContainerObjectSelectionList<ConfigOptionL
 
         public abstract boolean hasHardLimitViolation();
 
+        public void inheritSnapshot(Entry donor) {}
+
         protected void drawLabel(GuiGraphics gfx, int x, int y) {
             Minecraft mc = Minecraft.getInstance();
             gfx.drawString(mc.font, Component.translatable(labelKey),

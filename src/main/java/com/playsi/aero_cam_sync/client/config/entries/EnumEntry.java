@@ -131,5 +131,10 @@ public class EnumEntry<E extends Enum<E>> extends ConfigOptionList.Entry {
         button.setMessage(labelOf.apply(def));
     }
 
+    @Override
+    public void inheritSnapshot(ConfigOptionList.Entry donor) {
+        if (donor instanceof EnumEntry<?> d) this.snapshot = (E) d.snapshot;
+    }
+
     @Override public boolean hasHardLimitViolation() { return false; }
 }
