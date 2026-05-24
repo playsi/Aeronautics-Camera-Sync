@@ -3,7 +3,7 @@ package com.playsi.aero_cam_sync.mixins.client;
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import com.playsi.aero_cam_sync.client.utils.CameraController;
-import dev.ryanhcode.sable.Sable;
+import com.playsi.aero_cam_sync.client.utils.LevelClipMixinState;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -37,7 +37,6 @@ public abstract class GameRendererPickMixin {
 
         HitResult currentResult = mc.hitResult;
 
-
         if (currentResult != null && currentResult.getType() == HitResult.Type.ENTITY) {
             return;
         }
@@ -53,7 +52,6 @@ public abstract class GameRendererPickMixin {
             DebugRayRenderer.submitPickRay(vanillaEyes, vanillaEnd, 0.5f, 0.5f, 0.5f);
             DebugRayRenderer.submitPickRay(eyes, endPoint, 1.0f, 1.0f, 0.0f);
         }
-
 
         AABB searchBox = new AABB(eyes, endPoint).inflate(1.0);
         EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
@@ -75,12 +73,18 @@ public abstract class GameRendererPickMixin {
             return;
         }
 
-        BlockHitResult blockHit = mc.level.clip(new ClipContext(
-                eyes, endPoint,
-                ClipContext.Block.OUTLINE,
-                ClipContext.Fluid.NONE,
-                player
-        ));
+        BlockHitResult blockHit;
+        LevelClipMixinState.inTiltedClip = true;
+        try {
+            blockHit = mc.level.clip(new ClipContext(
+                    eyes, endPoint,
+                    ClipContext.Block.OUTLINE,
+                    ClipContext.Fluid.NONE,
+                    player
+            ));
+        } finally {
+            LevelClipMixinState.inTiltedClip = false;
+        }
 
         if (blockHit.getType() == HitResult.Type.MISS) return;
 
