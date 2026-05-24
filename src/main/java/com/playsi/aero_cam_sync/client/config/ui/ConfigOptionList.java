@@ -44,7 +44,15 @@ public class ConfigOptionList extends ContainerObjectSelectionList<ConfigOptionL
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!this.isMouseOver(mouseX, mouseY)) return false;
 
-        // Ищем entry через наши getRowTop/getRowBottom вместо ванильного itemHeight
+        // Обрабатываем клик по скроллбару напрямую
+        if (button == 0) {
+            int scrollbarX = getScrollbarPosition();
+            if (mouseX >= scrollbarX && mouseX < scrollbarX + 6) {
+                return super.mouseClicked(mouseX, mouseY, button);
+            }
+        }
+
+        // Ищем entry через наши getRowTop/getRowBottom
         for (int i = 0; i < children().size(); i++) {
             int top    = getRowTop(i);
             int bottom = getRowBottom(i);
