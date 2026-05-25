@@ -30,7 +30,9 @@ public class ClipShifter {
         if (player == null || mc.level == null) return;
         if (!mc.options.getCameraType().isFirstPerson()) return;
 
-        // Убираем проверку расстояния — она ненадёжна после трансформаций Сейбла
+        Vec3 eyePos = player.getEyePosition(1.0f);
+        if (context.getFrom().distanceToSqr(eyePos) > 16.0) return;
+
         Vec3 delta = mc.gameRenderer.getMainCamera().getPosition()
                 .subtract(player.getEyePosition(1.0f));
         if (delta.lengthSqr() < 1e-6) return;
