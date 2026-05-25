@@ -2,7 +2,7 @@ package com.playsi.aero_cam_sync.client.debug;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.playsi.aero_cam_sync.client.Config;
+import com.playsi.aero_cam_sync.client.config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -15,13 +15,14 @@ import org.joml.Matrix4f;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.ToLongFunction;
 
 import static com.playsi.aero_cam_sync.AeroCamSync.MODID;
 
 @EventBusSubscriber(modid = MODID, value = Dist.CLIENT)
 public class DebugRayRenderer {
 
-    private static final long PICK_RAY_TTL_MS = 3000L;
+    private static long pickRayTTLMS() { return (long)(Config.PICK_RAYS_TIME_SEC.get() * 1000); }
 
     public record DebugRay(Vec3 origin, Vec3 end, float r, float g, float b) {}
     private record TimedDebugRay(DebugRay ray, long expireAt) {}
@@ -35,7 +36,7 @@ public class DebugRayRenderer {
 
     public static void submitPickRay(Vec3 origin, Vec3 end, float r, float g, float b) {
         if (!Config.DEBUG_PICK_RAYS.get()) return;
-        long expireAt = System.currentTimeMillis() + PICK_RAY_TTL_MS;
+        long expireAt = System.currentTimeMillis() + pickRayTTLMS();
         pickRays.add(new TimedDebugRay(new DebugRay(origin, end, r, g, b), expireAt));
     }
 

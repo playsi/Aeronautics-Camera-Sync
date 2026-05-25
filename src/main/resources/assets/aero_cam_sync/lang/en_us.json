@@ -18,6 +18,38 @@
   "aero_cam_sync.configuration.smoothSpeed.tooltip": "Interpolation speed per frame. 0.0 = instant, 9999 = never",
   "aero_cam_sync.configuration.minNormalY": "Max Tilt Threshold",
   "aero_cam_sync.configuration.minNormalY.tooltip": "Maximum camera tilt angle (0.0 = any, 1.0 = flat only)",
+  "aero_cam_sync.configuration.dropCacheOnAllMiss":"Instantly forget Sublevel",
+  "aero_cam_sync.configuration.dropCacheOnAllMiss.tooltip": "prevents the camera from tilting again when the player moves above the level",
+  "aero_cam_sync.configuration.disableOnFlying": "Disable on flying",
+  "aero_cam_sync.configuration.disableOnFlying.tooltip": "Disable tilt when player start flying (creative, spectator)",
+
+  "aero_cam_sync.configuration.clientBlacklist": "Item Blacklist",
+  "aero_cam_sync.configuration.clientBlacklist.enabled": "Disable camera tilt for blacklisted items",
+  "aero_cam_sync.configuration.clientBlacklist.enabled.tooltip": "Disable camera tilt when holding a listed item (mod installed only on client)",
+  "aero_cam_sync.configuration.considerOffhand": "Check Offhand",
+  "aero_cam_sync.configuration.considerOffhand.tooltip": "Apply blacklist to offhand items",
+  "aero_cam_sync.configuration.addMainhandItemKey": "Toggle Blacklist Item Key",
+  "aero_cam_sync.configuration.addMainhandItemKey.tooltip": "Add/remove held item to blacklist",
+
+  "aero_cam_sync.configuration.clientBlacklist.separator": "Client Blacklist",
+
+
+  "aero_cam_sync.configuration.serverBlacklist": "Server Blacklist",
+  "aero_cam_sync.configuration.serverBlacklist.enabled": "Enable Server Blacklist",
+  "aero_cam_sync.configuration.serverBlacklist.enabled.tooltip": "Disable camera tilt when holding a listed item (mod installed on server)",
+  "aero_cam_sync.configuration.list.add":    "+ Add",
+  "aero_cam_sync.configuration.list.remove": "Remove entry",
+  "aero_cam_sync.configuration.list.placeholder": "minecraft:item_id",
+  "aero_cam_sync.configuration.list.empty": "",
+
+  "aero_cam_sync.configuration.list.tooltip.ok":        "ID: %s",
+  "aero_cam_sync.configuration.list.tooltip.not_found": "Not found: %s",
+  "aero_cam_sync.configuration.list.tooltip.empty":     "No item selected",
+  "aero_cam_sync.configuration.list.tooltip.error":     "Render error:",
+
+  "msg.aero_cam_sync.no_item_in_hand": "No item in main hand",
+  "msg.aero_cam_sync.added_to_blacklist": "Added %s to blacklist",
+  "msg.aero_cam_sync.removed_from_blacklist": "Removed %s from blacklist",
 
   "aero_cam_sync.configuration.raycast": "Raycasts",
   "aero_cam_sync.configuration.count": "Raycast Count",
@@ -32,9 +64,39 @@
   "aero_cam_sync.configuration.rays.tooltip": "Render all raycast lines in the world",
   "aero_cam_sync.configuration.pickRays": "Show Pick Rays",
   "aero_cam_sync.configuration.pickRays.tooltip": "Tilted pick ray",
+  "aero_cam_sync.configuration.pickRaysTimeSec": "Pick rays time",
+  "aero_cam_sync.configuration.pickRaysTimeSec.tooltip": "How long will the pick rays remain visible",
+  "aero_cam_sync.configuration.debugMessages": "Show debug messages in console",
+  "aero_cam_sync.configuration.debugMessages.tooltip": "Debug in console",
+
+  "aero_cam_sync.configuration.toggle.on": "On",
+  "aero_cam_sync.configuration.toggle.off": "Off",
+
+  "aero_cam_sync.configuration.toggleKey": "On/off key bind",
+  "aero_cam_sync.configuration.toggleKey.tooltip": "bind key",
+  "aero_cam_sync.configuration.openConfigKey": "Open this window",
+  "aero_cam_sync.configuration.openConfigKey.tooltip": "bind key",
+  "aero_cam_sync.configuration.keybind.conflict": "Key is already in use, may cause conflicts!",
+
+  "key.aero_cam_sync.none": "Not Bound",
+
+  "aero_cam_sync.configuration.btn.cancel": "Cancel",
+  "aero_cam_sync.configuration.btn.reset": "Reset",
+  "aero_cam_sync.configuration.btn.reset.tooltip": "Reset current category. Hold Shift to unlock this button",
+  "aero_cam_sync.configuration.btn.save": "Save",
+
+  "aero_cam_sync.configuration.hardLimitWarning": "One or more parameters are invalid",
 
   "key.aero_cam_sync.toggle": "Toggle Camera Tilt",
   "key.category.aero_cam_sync": "Aeronautics Camera Sync",
   "msg.aero_cam_sync.enabled": "§aCam Tilt: ON",
-  "msg.aero_cam_sync.disabled": "§cCam Tilt: OFF"
+  "msg.aero_cam_sync.disabled": "§cCam Tilt: OFF",
+
+  "key.aero_cam_sync.open_config": "Open mod Config",
+
+  "screen.aero_cam_sync.config_reset.title": "Aeronautics Camera Sync — Config Reset",
+  "screen.aero_cam_sync.config_reset.body1": "Your config file is outdated and may cause issues.",
+  "screen.aero_cam_sync.config_reset.body2": "Reset it to defaults?",
+  "screen.aero_cam_sync.config_reset.yes": "Reset",
+  "screen.aero_cam_sync.config_reset.no": "Ignore"
 }
