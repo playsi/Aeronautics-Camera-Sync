@@ -32,6 +32,11 @@ public class ClientBlacklistCategory {
                 "aero_cam_sync.configuration.considerOffhand.tooltip",
                 Config.CONSIDER_OFFHAND));
 
+        cat.add(new ToggleButtonEntry(
+                "aero_cam_sync.configuration.autoDisableForRaycastItems",
+                "aero_cam_sync.configuration.autoDisableForRaycastItems.tooltip",
+                Config.AUTO_DISABLE_FOR_RAYCAST_ITEMS));
+
         cat.add(new KeyBindEntry(
                 "aero_cam_sync.configuration.addMainhandItemKey",
                 "aero_cam_sync.configuration.addMainhandItemKey.tooltip",

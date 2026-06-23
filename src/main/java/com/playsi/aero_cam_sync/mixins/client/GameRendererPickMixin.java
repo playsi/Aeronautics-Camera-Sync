@@ -35,49 +35,22 @@ public abstract class GameRendererPickMixin {
         if (!mc.options.getCameraType().isFirstPerson()) return;
         if (player == null || mc.level == null) return;
 
-        HitResult currentResult = mc.hitResult;
-
-        if (currentResult != null && currentResult.getType() == HitResult.Type.ENTITY) {
-            return;
-        }
-
+        // Камера определяет перекрестие, поэтому весь pick делаем заново от позиции
+        // камеры и вдоль её (наклонённого) направления взгляда. getViewVector у
+        // LocalPlayer уже наклонён через EntityLookMixin, когда включён поворот камеры.
         Vec3 eyes = mc.gameRenderer.getMainCamera().getPosition();
         Vec3 look = player.getViewVector(partialTick);
-        double reach = player.blockInteractionRange();
-        Vec3 endPoint = eyes.add(look.scale(reach));
 
-        if (Config.DEBUG_PICK_RAYS.get()) {
-            Vec3 vanillaEyes = player.getEyePosition(partialTick);
-            Vec3 vanillaEnd = vanillaEyes.add(look.scale(reach));
-            DebugRayRenderer.submitPickRay(vanillaEyes, vanillaEnd, 0.5f, 0.5f, 0.5f);
-            DebugRayRenderer.submitPickRay(eyes, endPoint, 1.0f, 1.0f, 0.0f);
-        }
+        double blockReach = player.blockInteractionRange();
+        double entityReach = player.entityInteractionRange();
 
-        AABB searchBox = new AABB(eyes, endPoint).inflate(1.0);
-        EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
-                player, eyes, endPoint, searchBox,
-                e -> !e.isSpectator() && e.isPickable(),
-                reach * reach
-        );
-
-        if (entityHit != null) {
-            mc.hitResult = entityHit;
-
-            if (Config.DEBUG_PICK_RAYS.get()) {
-                Vec3 h = entityHit.getLocation();
-                float s = 0.05f;
-                DebugRayRenderer.submitPickRay(h.add(-s, 0, 0), h.add(s, 0, 0), 0f, 1f, 0f);
-                DebugRayRenderer.submitPickRay(h.add(0, -s, 0), h.add(0, s, 0), 0f, 1f, 0f);
-                DebugRayRenderer.submitPickRay(h.add(0, 0, -s), h.add(0, 0, s), 0f, 1f, 0f);
-            }
-            return;
-        }
-
+        // --- Блоки: клип от камеры на дальность взаимодействия с блоками ---
+        Vec3 blockEnd = eyes.add(look.scale(blockReach));
         BlockHitResult blockHit;
         LevelClipMixinState.inTiltedClip = true;
         try {
             blockHit = mc.level.clip(new ClipContext(
-                    eyes, endPoint,
+                    eyes, blockEnd,
                     ClipContext.Block.OUTLINE,
                     ClipContext.Fluid.NONE,
                     player
@@ -86,18 +59,43 @@ public abstract class GameRendererPickMixin {
             LevelClipMixinState.inTiltedClip = false;
         }
 
-        if (blockHit.getType() == HitResult.Type.MISS) return;
-
-        if (currentResult != null && currentResult.getType() == HitResult.Type.BLOCK) {
-            double currentDist = currentResult.getLocation().distanceToSqr(eyes.x, eyes.y, eyes.z);
-            double tiltedDist = blockHit.getLocation().distanceToSqr(eyes.x, eyes.y, eyes.z);
-            if (currentDist <= tiltedDist) return;
-        }
-
-        mc.hitResult = blockHit;
+        boolean hasBlock = blockHit.getType() != HitResult.Type.MISS;
+        double blockDistSqr = hasBlock
+                ? eyes.distanceToSqr(blockHit.getLocation())
+                : Double.MAX_VALUE;
 
         if (Config.DEBUG_PICK_RAYS.get()) {
-            Vec3 h = blockHit.getLocation();
+            Vec3 vanillaEyes = player.getEyePosition(partialTick);
+            DebugRayRenderer.submitPickRay(vanillaEyes, vanillaEyes.add(look.scale(blockReach)), 0.5f, 0.5f, 0.5f);
+            DebugRayRenderer.submitPickRay(eyes, blockEnd, 1.0f, 1.0f, 0.0f);
+        }
+
+        // --- Сущности: ищем тоже от камеры, но НЕ дальше попавшего блока, иначе
+        //     можно было бы «прокликать» моба сквозь стену (Issue: mob through blocks). ---
+        double entitySearch = hasBlock
+                ? Math.min(entityReach, Math.sqrt(blockDistSqr))
+                : entityReach;
+        Vec3 entityEnd = eyes.add(look.scale(entitySearch));
+        AABB searchBox = new AABB(eyes, entityEnd).inflate(1.0);
+        EntityHitResult entityHit = ProjectileUtil.getEntityHitResult(
+                player, eyes, entityEnd, searchBox,
+                e -> !e.isSpectator() && e.isPickable(),
+                entitySearch * entitySearch
+        );
+
+        // Сущность побеждает только если она перед блоком (и в радиусе досягаемости).
+        HitResult result;
+        if (entityHit != null
+                && eyes.distanceToSqr(entityHit.getLocation()) <= blockDistSqr) {
+            result = entityHit;
+        } else {
+            result = blockHit; // может быть MISS — это корректно: перекрестие смотрит в пустоту
+        }
+
+        mc.hitResult = result;
+
+        if (Config.DEBUG_PICK_RAYS.get() && result.getType() != HitResult.Type.MISS) {
+            Vec3 h = result.getLocation();
             float s = 0.05f;
             DebugRayRenderer.submitPickRay(h.add(-s, 0, 0), h.add(s, 0, 0), 0f, 1f, 0f);
             DebugRayRenderer.submitPickRay(h.add(0, -s, 0), h.add(0, s, 0), 0f, 1f, 0f);

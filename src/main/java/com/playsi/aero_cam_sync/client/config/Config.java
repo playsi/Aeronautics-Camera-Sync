@@ -7,7 +7,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Config {
-    private static final List<String> DEFAULT_CLIENT_BLACKLIST_IDS = List.of("minecraft:bow", "minecraft:crossbow", "minecraft:fishing_rod", "minecraft:snowball", "minecraft:egg", "minecraft:wind_charge", "minecraft:ender_pearl", "minecraft:brush", "minecraft:trident", "minecraft:bucket", "minecraft:water_bucket", "minecraft:lava_bucket", "minecraft:cod_bucket", "minecraft:tropical_fish_bucket", "minecraft:pufferfish_bucket", "minecraft:salmon_bucket", "minecraft:axolotl_bucket", "minecraft:tadpole_bucket", "minecraft:splash_potion", "minecraft:lingering_potion", "minecraft:experience_bottle", "create:potato_cannon", "create:honey_bucket", "create:chocolate_bucket", "create:handheld_worldshaper", "create:schematic_and_quill", "create:schematic", "simulated:plunger_launcher", "aeronautics:levitite_blend_bucket");
+    // Пустой по умолчанию: снаряды/вёдра теперь наклоняются сервером (на сервере с
+    // модом) либо авто-отключаются по классу предмета на клиент-онли сервере
+    // (AUTO_DISABLE_FOR_RAYCAST_ITEMS). Список — только для ручных исключений игрока.
+    private static final List<String> DEFAULT_CLIENT_BLACKLIST_IDS = List.of();
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     // ── General ────────────────────────────────────────────────────────────────
@@ -35,6 +38,18 @@ public class Config {
     public static final ModConfigSpec.BooleanValue MODIFY_CAMERA_POS =
             BUILDER.comment("Move camera").define("moveCamera", true);
 
+    public static final ModConfigSpec.BooleanValue DROP_FROM_CAMERA =
+            BUILDER.comment("Drop tossed items from the tilted camera (origin + direction) instead of the hitbox head")
+                    .define("dropFromCamera", true);
+
+    public static final ModConfigSpec.BooleanValue CAMERA_COLLISION =
+            BUILDER.comment("Keep the shifted camera out of solid blocks (prevents seeing through walls / X-ray when tilted next to a wall)")
+                    .define("cameraCollision", true);
+
+    public static final ModConfigSpec.DoubleValue CAMERA_COLLISION_SMOOTH =
+            BUILDER.comment("How smoothly the tilt eases off as the camera nears a wall, in ticks (0 = instant snap, higher = smoother)")
+                    .defineInRange("cameraCollisionSmooth", 0.4, 0.0, 5.0);
+
     public static final ModConfigSpec.DoubleValue SMOOTH_SPEED =
             BUILDER.comment("Tilt interpolation speed per frame (0.0 = instant snap, 9999 = never moves)")
                     .defineInRange("smoothSpeed", 1.7, 0.0, 9999.0);
@@ -42,6 +57,44 @@ public class Config {
     public static final ModConfigSpec.DoubleValue MIN_NORMAL_Y =
             BUILDER.comment("Maximum tilt threshold (0.0 - 1.0)")
                     .defineInRange("minNormalY", 0.8, 0.0, 1.0);
+
+    // ── Activation thresholds (per sub-level you stand on) ───────────────────────
+    // Each criterion is independent: when enabled, the sub-level must be >= the value,
+    // otherwise the camera does not tilt. All disabled by default = always tilt.
+    public static final ModConfigSpec.BooleanValue GATE_MASS_ENABLED =
+            BUILDER.comment("Only tilt when the sub-level mass is at least the threshold (primary factor)")
+                    .define("gateMassEnabled", false);
+    public static final ModConfigSpec.DoubleValue GATE_MASS_MIN =
+            BUILDER.comment("Minimum sub-level mass to allow tilt")
+                    .defineInRange("gateMassMin", 10.0, 0.0, 100_000_000.0);
+
+    public static final ModConfigSpec.BooleanValue GATE_BLOCKS_ENABLED =
+            BUILDER.comment("Only tilt when the sub-level block count is at least the threshold")
+                    .define("gateBlocksEnabled", false);
+    public static final ModConfigSpec.IntValue GATE_BLOCKS_MIN =
+            BUILDER.comment("Minimum sub-level block count to allow tilt")
+                    .defineInRange("gateBlocksMin", 10, 0, 100_000_000);
+
+    public static final ModConfigSpec.BooleanValue GATE_LENGTH_ENABLED =
+            BUILDER.comment("Only tilt when the sub-level length (X) is at least the threshold")
+                    .define("gateLengthEnabled", false);
+    public static final ModConfigSpec.IntValue GATE_LENGTH_MIN =
+            BUILDER.comment("Minimum sub-level length in blocks (X) to allow tilt")
+                    .defineInRange("gateLengthMin", 3, 1, 100_000);
+
+    public static final ModConfigSpec.BooleanValue GATE_HEIGHT_ENABLED =
+            BUILDER.comment("Only tilt when the sub-level height (Y) is at least the threshold")
+                    .define("gateHeightEnabled", false);
+    public static final ModConfigSpec.IntValue GATE_HEIGHT_MIN =
+            BUILDER.comment("Minimum sub-level height in blocks (Y) to allow tilt")
+                    .defineInRange("gateHeightMin", 3, 1, 100_000);
+
+    public static final ModConfigSpec.BooleanValue GATE_WIDTH_ENABLED =
+            BUILDER.comment("Only tilt when the sub-level width (Z) is at least the threshold")
+                    .define("gateWidthEnabled", false);
+    public static final ModConfigSpec.IntValue GATE_WIDTH_MIN =
+            BUILDER.comment("Minimum sub-level width in blocks (Z) to allow tilt")
+                    .defineInRange("gateWidthMin", 3, 1, 100_000);
 
     // ── Client Blacklist ───────────────────────────────────────────────────────
     public static final ModConfigSpec.BooleanValue CLIENT_BLACKLIST_ENABLED =
@@ -51,6 +104,14 @@ public class Config {
     public static final ModConfigSpec.BooleanValue CONSIDER_OFFHAND =
             BUILDER.comment("Consider item in offhand for blacklist checking")
                     .define("considerOffhand", true);
+
+    public static final ModConfigSpec.BooleanValue AUTO_DISABLE_FOR_RAYCAST_ITEMS =
+            BUILDER.comment(
+                    "Automatically disable camera tilt for projectile-like and bucket-like items,\n" +
+                            "detected by item class instead of a fixed ID list. Covers modded snowballs,\n" +
+                            "throwables, buckets, bows, etc. and fixes their wrong throw/placement direction\n" +
+                            "while standing on a tilted sub-level.")
+                    .define("autoDisableForRaycastItems", true);
 
     public static final ModConfigSpec.ConfigValue<String> ADD_MAINHAND_ITEM_KEY =
             BUILDER.comment("Add mainhand item to blacklist if not already present")

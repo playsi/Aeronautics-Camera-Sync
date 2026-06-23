@@ -7,8 +7,13 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.EnderpearlItem;
+import net.minecraft.world.item.FishingRodItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ProjectileItem;
+import net.minecraft.world.item.ProjectileWeaponItem;
 
 import java.util.List;
 
@@ -77,6 +82,33 @@ public class BlacklistHandle {
 
     private static boolean isItemBanned(ItemStack stack, List<? extends String> bannedIds) {
         return !stack.isEmpty() && bannedIds.contains(getItemId(stack));
+    }
+
+    /**
+     * Держит ли игрок предмет, который при использовании стреляет/кидает/райкастит
+     * вдоль «сырого» направления взгляда (xRot/yRot), а не наклонённой камеры.
+     *
+     * <p>Такие предметы (снежки и прочие метательные снаряды, вёдра, луки, удочки)
+     * на сервере летят/ставятся мимо перекрестия, пока камера наклонена. Определяем
+     * их по классу, чтобы покрыть и модовые предметы без правки списка ID.</p>
+     */
+    public static boolean holdRaycastItem() {
+        Minecraft mc = Minecraft.getInstance();
+        LocalPlayer player = mc.player;
+        if (player == null) return false;
+
+        return isRaycastItem(player.getMainHandItem()) ||
+                (Config.CONSIDER_OFFHAND.get() && isRaycastItem(player.getOffhandItem()));
+    }
+
+    private static boolean isRaycastItem(ItemStack stack) {
+        if (stack.isEmpty()) return false;
+        Item item = stack.getItem();
+        return item instanceof ProjectileItem         // снежки, яйца, жемчуг края*, зелья, и т.п.
+                || item instanceof BucketItem          // вёдра (вкл. MobBucketItem)
+                || item instanceof ProjectileWeaponItem // луки, арбалеты
+                || item instanceof FishingRodItem
+                || item instanceof EnderpearlItem;     // *Enderpearl не реализует ProjectileItem
     }
 
     private static String getItemId(ItemStack stack) {

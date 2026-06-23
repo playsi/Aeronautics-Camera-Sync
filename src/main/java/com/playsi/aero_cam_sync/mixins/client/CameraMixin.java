@@ -1,5 +1,6 @@
 package com.playsi.aero_cam_sync.mixins.client;
 
+import com.playsi.aero_cam_sync.SideManager;
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import com.playsi.aero_cam_sync.client.utils.BlacklistHandle;
@@ -41,11 +42,18 @@ public abstract class CameraMixin {
 
         Vector3f surfaceNormal = null;
 
+        // Авто-отключение для снарядов/вёдер нужно ТОЛЬКО когда сервер без мода и не
+        // может наклонить снаряд сам. Если мод есть на сервере — оставляем наклон,
+        // а сервер развернёт снаряд/луч под камеру (ProjectileShootTiltMixin и пр.).
         boolean banned =
-                Config.CLIENT_BLACKLIST_ENABLED.get() &&
-                        BlacklistHandle.holdBannedItem(Config.CLIENT_BLACKLIST_IDS.get());
+                (Config.CLIENT_BLACKLIST_ENABLED.get() &&
+                        BlacklistHandle.holdBannedItem(Config.CLIENT_BLACKLIST_IDS.get()))
+                || (Config.AUTO_DISABLE_FOR_RAYCAST_ITEMS.get() &&
+                        SideManager.isClientOnly() &&
+                        BlacklistHandle.holdRaycastItem());
 
-        if (!banned && subLevel != null) {
+        if (!banned && subLevel != null
+                && com.playsi.aero_cam_sync.client.utils.SubLevelThresholds.passes(subLevel)) {
             Pose3dc pose = subLevel.renderPose(partialTick);
             surfaceNormal = SurfaceRaycaster.getSurfaceNormal(subLevel, pose);
 
