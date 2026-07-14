@@ -55,6 +55,7 @@ public class ModConfigScreen extends Screen {
         categories.clear();
         categories.add(GeneralCategory.build());
         categories.add(CameraCategory.build());
+        categories.add(ActivationCategory.build());
         categories.add(ClientBlacklistCategory.build(clientBlacklist, this::rebuildScreen));
         categories.add(RaycastCategory.build());
         categories.add(DebugCategory.build());

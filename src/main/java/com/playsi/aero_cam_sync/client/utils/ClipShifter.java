@@ -14,6 +14,9 @@ public class ClipShifter {
 
     public static void tryShift(BlockGetter level, ClipContext context,
                                 CallbackInfoReturnable<BlockHitResult> cir) {
+        // Только главный поток (см. SableCompatClipMixin): фоновые лучи звука Sound Physics
+        // Perfected трогать нельзя, иначе гонка по статическому guard'у и зависание.
+        if (!Minecraft.getInstance().isSameThread()) return;
         if (LevelClipMixinState.inTiltedClip) return;
         if (context == LevelClipMixinState.tiltedContext) return;
         if (!(level instanceof ClientLevel)) return;
