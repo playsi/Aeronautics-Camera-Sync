@@ -51,16 +51,22 @@ public class SideManager {
 
     public static void sendTiltToServer() {
         Minecraft mc = Minecraft.getInstance();
-        boolean active = shouldApplyTilt();
-        Quaternionf q = active ? new Quaternionf(getSmoothedTilt()) : new Quaternionf();
+        boolean enabled = shouldApplyTilt();
+        // Два НЕЗАВИСИМЫХ флага: поворот камеры наклоняет направление снаряда/взгляда,
+        // сдвиг позиции — точку вылета. Любой из них может работать в одиночку.
+        boolean rotActive = enabled && Config.MODIFY_CAMERA_ROT.get();
+        boolean posShift  = enabled && Config.MODIFY_CAMERA_POS.get();
+        boolean dropFromCamera = Config.DROP_FROM_CAMERA.get();
+        boolean present = rotActive || posShift;
+        Quaternionf q = present ? new Quaternionf(getSmoothedTilt()) : new Quaternionf();
 
         if (mc.hasSingleplayerServer()) {
             MinecraftServer server = mc.getSingleplayerServer();
             if (server != null && mc.player != null) {
                 ServerPlayer sp = server.getPlayerList().getPlayer(mc.player.getUUID());
                 if (sp != null) {
-                    if (active) {
-                        ServerTiltStore.set(sp.getUUID(), q);
+                    if (present) {
+                        ServerTiltStore.set(sp.getUUID(), q, rotActive, posShift, dropFromCamera);
                     } else {
                         ServerTiltStore.clear(sp.getUUID()); // раньше было set(..., null) → NPE
                     }
@@ -73,7 +79,7 @@ public class SideManager {
         if (currentSide != Side.CLIENT_SERVER) return;
         if (mc.getConnection() == null) return;
 
-        PacketDistributor.sendToServer(TiltSyncPayload.from(q, active));
+        PacketDistributor.sendToServer(TiltSyncPayload.from(q, rotActive, posShift, dropFromCamera));
     }
 
     public static void reset() {

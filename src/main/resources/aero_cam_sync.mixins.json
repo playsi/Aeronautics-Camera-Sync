@@ -4,10 +4,16 @@
   "package": "com.playsi.aero_cam_sync.mixins",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "ServerEntityLookMixin",
+    "ProjectileShootTiltMixin",
+    "ItemPovTiltMixin",
+    "PlayerDropTiltMixin",
+    "CreateRaycastTiltMixin"
   ],
   "client": [
     "client.CameraMixin",
     "client.EntityLookMixin",
+    "client.FirstPersonModelTiltMixin",
     "client.GameRendererPickMixin",
     "client.SableCompatClipMixin"
   ],

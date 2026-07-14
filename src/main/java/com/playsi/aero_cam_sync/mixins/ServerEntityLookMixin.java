@@ -1,6 +1,5 @@
 package com.playsi.aero_cam_sync.mixins;
 
-import com.playsi.aero_cam_sync.AeroCamSync;
 import com.playsi.aero_cam_sync.ServerTiltStore;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -19,14 +18,9 @@ public abstract class ServerEntityLookMixin {
     private void serverTiltViewVector(float partialTick,
                                       CallbackInfoReturnable<Vec3> cir) {
 
-        if ((Object) this instanceof ServerPlayer sp) {
-            AeroCamSync.LOGGER.info("[DEBUG] serverTiltLookAngle called for ServerPlayer: {}", sp.getName().getString());
-            AeroCamSync.LOGGER.info("[DEBUG] tilt in store: {}", ServerTiltStore.get(sp.getUUID()));
-        }
-
         if (!((Object) this instanceof ServerPlayer sp)) return;
 
-        Quaternionf tilt = ServerTiltStore.get(sp.getUUID());
+        Quaternionf tilt = ServerTiltStore.getLookTilt(sp.getUUID());
         if (tilt == null) return;
 
         Vec3 vanilla = cir.getReturnValue();
@@ -39,7 +33,7 @@ public abstract class ServerEntityLookMixin {
     private void serverTiltLookAngle(CallbackInfoReturnable<Vec3> cir) {
         if (!((Object) this instanceof ServerPlayer sp)) return;
 
-        Quaternionf tilt = ServerTiltStore.get(sp.getUUID());
+        Quaternionf tilt = ServerTiltStore.getLookTilt(sp.getUUID());
         if (tilt == null) return;
 
         Vec3 vanilla = cir.getReturnValue();

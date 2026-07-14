@@ -10,7 +10,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.joml.Quaternionf;
 
-public record TiltSyncPayload(float qx, float qy, float qz, float qw, boolean active)
+public record TiltSyncPayload(float qx, float qy, float qz, float qw,
+                              boolean rotActive, boolean posShift, boolean dropFromCamera)
         implements CustomPacketPayload {
 
     public static final Type<TiltSyncPayload> TYPE =
@@ -21,17 +22,21 @@ public record TiltSyncPayload(float qx, float qy, float qz, float qw, boolean ac
                     (buf, p) -> {
                         buf.writeFloat(p.qx); buf.writeFloat(p.qy);
                         buf.writeFloat(p.qz); buf.writeFloat(p.qw);
-                        buf.writeBoolean(p.active);
+                        buf.writeBoolean(p.rotActive);
+                        buf.writeBoolean(p.posShift);
+                        buf.writeBoolean(p.dropFromCamera);
                     },
                     buf -> new TiltSyncPayload(
                             buf.readFloat(), buf.readFloat(),
                             buf.readFloat(), buf.readFloat(),
+                            buf.readBoolean(),
+                            buf.readBoolean(),
                             buf.readBoolean()
                     )
             );
 
-    public static TiltSyncPayload from(Quaternionf q, boolean active) {
-        return new TiltSyncPayload(q.x, q.y, q.z, q.w, active);
+    public static TiltSyncPayload from(Quaternionf q, boolean rotActive, boolean posShift, boolean dropFromCamera) {
+        return new TiltSyncPayload(q.x, q.y, q.z, q.w, rotActive, posShift, dropFromCamera);
     }
 
     public Quaternionf toQuaternion() {
@@ -41,8 +46,9 @@ public record TiltSyncPayload(float qx, float qy, float qz, float qw, boolean ac
     public static void handle(TiltSyncPayload payload, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             ServerPlayer player = (ServerPlayer) ctx.player();
-            if (payload.active()) {
-                ServerTiltStore.set(player.getUUID(), payload.toQuaternion());
+            if (payload.rotActive() || payload.posShift()) {
+                ServerTiltStore.set(player.getUUID(), payload.toQuaternion(),
+                        payload.rotActive(), payload.posShift(), payload.dropFromCamera());
             } else {
                 ServerTiltStore.clear(player.getUUID());
             }
