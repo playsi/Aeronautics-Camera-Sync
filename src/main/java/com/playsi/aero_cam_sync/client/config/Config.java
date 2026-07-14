@@ -10,7 +10,7 @@ public class Config {
     // Пустой по умолчанию: снаряды/вёдра теперь наклоняются сервером (на сервере с
     // модом) либо авто-отключаются по классу предмета на клиент-онли сервере
     // (AUTO_DISABLE_FOR_RAYCAST_ITEMS). Список — только для ручных исключений игрока.
-    private static final List<String> DEFAULT_CLIENT_BLACKLIST_IDS = List.of();
+    private static final List<String> DEFAULT_CLIENT_BLACKLIST_IDS = List.of("create:handheld_worldshaper","create:potato_cannon"); //this items work strange
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     // ── General ────────────────────────────────────────────────────────────────

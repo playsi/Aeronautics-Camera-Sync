@@ -145,7 +145,9 @@ public final class CameraController {
     private static void updateWallScale(Camera camera, float partialTick) {
         float target = 1.0f;
 
-        if (Config.MODIFY_CAMERA_POS.get() && Config.CAMERA_COLLISION.get()) {
+        //if (Config.MODIFY_CAMERA_POS.get() && Config.CAMERA_COLLISION.get()) {
+          if (false) {  // This function work bad
+
             LocalPlayer player = Minecraft.getInstance().player;
             if (player != null) {
                 double feetX = Mth.lerp(partialTick, player.xOld, player.getX());
@@ -251,7 +253,9 @@ public final class CameraController {
         // Сдвиг камеры может занести её ВНУТРЬ соседней стены → видно сквозь блоки (X-ray).
         // Как ванильная камера от 3-го лица: прокидываем луч от глаза к желаемой позиции и
         // не пускаем камеру за ближайшую стену.
-        if (Config.CAMERA_COLLISION.get()) {
+        //if (Config.CAMERA_COLLISION.get()) { // This function work bad
+
+        if (false) {
             Vec3 clamped = clampToCollision(player, vanillaCamPos,
                     new Vec3(targetX, targetY, targetZ), partialTick);
             targetX = clamped.x;

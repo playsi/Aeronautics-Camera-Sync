@@ -28,21 +28,23 @@ public class CameraCategory {
                 "aero_cam_sync.configuration.dropFromCamera.tooltip",
                 Config.DROP_FROM_CAMERA));
 
-        camera.add(new
 
-                ToggleButtonEntry(
-                "aero_cam_sync.configuration.cameraCollision",
-                "aero_cam_sync.configuration.cameraCollision.tooltip",
-                Config.CAMERA_COLLISION));
-
-        camera.add(new
-
-                SliderEntry(
-                "aero_cam_sync.configuration.cameraCollisionSmooth",
-                "aero_cam_sync.configuration.cameraCollisionSmooth.tooltip",
-                Config.CAMERA_COLLISION_SMOOTH,
-                0.0, 2.0, 0.05,   // sliderMin, sliderMax, step
-                0.0, 5.0));        // hardMin, hardMax
+        // work bad
+//        camera.add(new
+//
+//                ToggleButtonEntry(
+//                "aero_cam_sync.configuration.cameraCollision",
+//                "aero_cam_sync.configuration.cameraCollision.tooltip",
+//                Config.CAMERA_COLLISION));
+//
+//        camera.add(new
+//
+//                SliderEntry(
+//                "aero_cam_sync.configuration.cameraCollisionSmooth",
+//                "aero_cam_sync.configuration.cameraCollisionSmooth.tooltip",
+//                Config.CAMERA_COLLISION_SMOOTH,
+//                0.0, 2.0, 0.05,   // sliderMin, sliderMax, step
+//                0.0, 5.0));        // hardMin, hardMax
 
         camera.add(new
 

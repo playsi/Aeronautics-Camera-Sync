@@ -165,7 +165,7 @@ public class ThresholdEntry extends ConfigOptionList.Entry {
         int wy = top + (ENTRY_H - WIDGET_H) / 2;
 
         int boxX    = rightEdge - BOX_W;
-        int sliderX = boxX - GAP - SLIDER_W;
+        int sliderX = boxX    - GAP - SLIDER_W;
         int toggleX = sliderX - GAP - TOGGLE_W;
 
         toggle.setX(toggleX); toggle.setY(wy);
