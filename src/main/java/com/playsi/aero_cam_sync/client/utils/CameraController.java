@@ -158,17 +158,26 @@ public final class CameraController {
                 try { if (sl != null) pose = sl.renderPose(partialTick); }
                 catch (Throwable ignored) { pose = null; }
 
+                Vector3f eyeOffset = new Vector3f(
+                        (float) (eye.x - feetX),
+                        (float) (eye.y - feetY),
+                        (float) (eye.z - feetZ));
+
                 boolean prev = LevelClipMixinState.inTiltedClip;
                 LevelClipMixinState.inTiltedClip = true;
                 try {
-                    target = 0.0f; // запас: позиция глаза (масштаб 0) всегда чистая
-                    for (float s = 1.0f; s > 0.001f; s -= 0.1f) {
-                        Vector3f off = new Quaternionf().slerp(smoothedTilt, s).transform(new Vector3f(
-                                (float) (eye.x - feetX),
-                                (float) (eye.y - feetY),
-                                (float) (eye.z - feetZ)));
-                        Vec3 cam = new Vec3(feetX + off.x, feetY + off.y, feetZ + off.z);
-                        if (cameraClear(player, eye, cam, sl, pose)) { target = s; break; }
+                    // Бинарный поиск
+                    if (cameraClear(player, eye, wallScaleCamPos(feetX, feetY, feetZ, eyeOffset, 1.0f), sl, pose)) {
+                        target = 1.0f; // s = 1 чист — стен рядом нет, дальше можно не искать
+                    } else {
+                        float lo = 0.0f; // запас: позиция глаза (масштаб 0) всегда чистая
+                        float hi = 1.0f; // известно, что заблокировано
+                        for (int i = 0; i < 10; i++) {
+                            float mid = (lo + hi) * 0.5f;
+                            Vec3 cam = wallScaleCamPos(feetX, feetY, feetZ, eyeOffset, mid);
+                            if (cameraClear(player, eye, cam, sl, pose)) lo = mid; else hi = mid;
+                        }
+                        target = lo;
                     }
                 } finally {
                     LevelClipMixinState.inTiltedClip = prev;
@@ -186,6 +195,13 @@ public final class CameraController {
         wallScale = Mth.lerp(a, wallScale, target);
     }
 
+    /** Позиция камеры при масштабе наклона {@code s} относительно ног игрока. */
+    private static Vec3 wallScaleCamPos(double feetX, double feetY, double feetZ,
+                                        Vector3f eyeOffset, float s) {
+        Vector3f off = new Quaternionf().slerp(smoothedTilt, s).transform(new Vector3f(eyeOffset));
+        return new Vec3(feetX + off.x, feetY + off.y, feetZ + off.z);
+    }
+
     /** Камера в чистом пространстве: не за стеной от глаза И есть зазор во все стороны. */
     private static boolean cameraClear(LocalPlayer player, Vec3 eye, Vec3 cam,
                                        ClientSubLevel sl, Pose3dc pose) {
@@ -195,16 +211,18 @@ public final class CameraController {
         if (blockedWorld(level, player, eye, cam)) return false;
         if (blockedSub(sl, pose, player, eye, cam)) return false;
 
-        // 2) Зазор вокруг камеры (ближняя плоскость) — по 6 осям.
+        // 2) Зазор вокруг камеры (ближняя плоскость) — по 8 диагональным углам (как в
+        // collisionMaxDist), а не только по 6 осям: осевые лучи не ловят блок, в который
+        // камера упирается диагонально углом, из-за чего на некоторых углах наклона
+        // wallScale ошибочно считал позицию чистой.
         final double R = 0.15;
-        for (int axis = 0; axis < 3; axis++) {
-            for (int sign = -1; sign <= 1; sign += 2) {
-                Vec3 to = cam.add(axis == 0 ? sign * R : 0,
-                                  axis == 1 ? sign * R : 0,
-                                  axis == 2 ? sign * R : 0);
-                if (blockedWorld(level, player, cam, to)) return false;
-                if (blockedSub(sl, pose, player, cam, to)) return false;
-            }
+        for (int i = 0; i < 8; i++) {
+            double sx = (i & 1) != 0 ? R : -R;
+            double sy = (i & 2) != 0 ? R : -R;
+            double sz = (i & 4) != 0 ? R : -R;
+            Vec3 to = cam.add(sx, sy, sz);
+            if (blockedWorld(level, player, cam, to)) return false;
+            if (blockedSub(sl, pose, player, cam, to)) return false;
         }
         return true;
     }
