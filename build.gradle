@@ -82,10 +82,12 @@ dependencies {
     compileOnly "maven.modrinth:create-aeronautics:${aeronautics_version}"
     runtimeOnly "maven.modrinth:create-aeronautics:${aeronautics_version}"
 
-    //extracted from create aeronautics (JarInJar)
-    compileOnly files('libs/dev.eriksonn.aeronautics.aeronautics-neoforge-1.21.1-1.1.3.jar')
-    compileOnly files('libs/dev.ryanhcode.offroad.offroad-neoforge-1.21.1-1.1.3.jar')
-    compileOnly files('libs/dev.simulated_team.simulated.simulated-neoforge-1.21.1-1.1.3.jar')
+    // Внутренние либы Create Aeronautics (в рантайме бандлятся через JarInJar внутри create-aeronautics).
+    // transitive = false: тянем только сами jar-ы (как раньше libs/*.jar), без их POM-зависимостей
+    // (curios, jei и пр.) — в рантайме всё приходит внутри create-aeronautics через JarInJar.
+    compileOnly("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_bundle_version}") { transitive = false }
+    compileOnly("dev.ryanhcode.offroad:offroad-neoforge-${minecraft_version}:${aeronautics_bundle_version}") { transitive = false }
+    compileOnly("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${aeronautics_bundle_version}") { transitive = false }
 
     compileOnly("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version}")
 
