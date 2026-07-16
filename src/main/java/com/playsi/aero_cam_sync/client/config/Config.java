@@ -7,10 +7,14 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Config {
-    // Пустой по умолчанию: снаряды/вёдра теперь наклоняются сервером (на сервере с
+    // По умолчанию почти пустой: снаряды/вёдра наклоняются сервером (на сервере с
     // модом) либо авто-отключаются по классу предмета на клиент-онли сервере
-    // (AUTO_DISABLE_FOR_RAYCAST_ITEMS). Список — только для ручных исключений игрока.
-    private static final List<String> DEFAULT_CLIENT_BLACKLIST_IDS = List.of();
+    // (AUTO_DISABLE_FOR_RAYCAST_ITEMS). Здесь — ручные исключения для предметов,
+    // которые не ловятся авто-детектом по классу (не Projectile/BucketItem).
+    private static final List<String> DEFAULT_CLIENT_BLACKLIST_IDS = List.of(
+            "create:handheld_worldshaper",
+            "create:potato_cannon"
+    );
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
     // ── General ────────────────────────────────────────────────────────────────
@@ -38,8 +42,11 @@ public class Config {
     public static final ModConfigSpec.BooleanValue MODIFY_CAMERA_POS =
             BUILDER.comment("Move camera").define("moveCamera", true);
 
+    // Works only when the mod is installed on the server (see PlayerDropTiltMixin,
+    // gated by ServerPlayer + ServerTiltStore) — no effect in client-only mode.
     public static final ModConfigSpec.BooleanValue DROP_FROM_CAMERA =
-            BUILDER.comment("Drop tossed items from the tilted camera (origin + direction) instead of the hitbox head")
+            BUILDER.comment("Drop tossed items from the tilted camera (origin + direction) instead of the hitbox head\n" +
+                            "Requires the mod to be installed on the server — no effect otherwise.")
                     .define("dropFromCamera", true);
 
     // NB: коллизия проверяется только по блокам обычного мира. Внутри блоков
@@ -50,7 +57,7 @@ public class Config {
 
     public static final ModConfigSpec.DoubleValue CAMERA_COLLISION_SMOOTH =
             BUILDER.comment("How smoothly the tilt eases off as the camera nears a wall, in ticks (0 = instant snap, higher = smoother)")
-                    .defineInRange("cameraCollisionSmooth", 0.4, 0.0, 5.0);
+                    .defineInRange("cameraCollisionSmooth", 0.350, 0.0, 5.0);
 
     public static final ModConfigSpec.DoubleValue SMOOTH_SPEED =
             BUILDER.comment("Tilt interpolation speed per frame (0.0 = instant snap, 9999 = never moves)")

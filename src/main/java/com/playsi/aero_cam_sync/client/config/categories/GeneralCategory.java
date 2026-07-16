@@ -21,7 +21,14 @@ public class GeneralCategory {
                 KeyBindings.TOGGLE,
                 Config.TOGGLE_KEY));
 
-        general.add(new SeparatorEntry());
+        general.add(new SliderEntry(
+                "aero_cam_sync.configuration.minNormalY",
+                "aero_cam_sync.configuration.minNormalY.tooltip",
+                Config.MIN_NORMAL_Y,
+                0.0, 1.0, 0.01,
+                0.0, 1.0));
+
+        general.add(new SeparatorEntry("aero_cam_sync.configuration.general.misc"));
 
         general.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.allow3rdPerson",
