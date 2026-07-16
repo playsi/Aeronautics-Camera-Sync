@@ -3,6 +3,7 @@ package com.playsi.aero_cam_sync.client.config.categories;
 import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.config.entries.SeparatorEntry;
 import com.playsi.aero_cam_sync.client.config.entries.ThresholdEntry;
+import com.playsi.aero_cam_sync.client.config.entries.ToggleButtonEntry;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigCategory;
 
 /**
@@ -48,6 +49,18 @@ public class ActivationCategory {
                 "aero_cam_sync.configuration.gateWidth.tooltip",
                 Config.GATE_WIDTH_ENABLED, Config.GATE_WIDTH_MIN,
                 1, 64, 1, 1, 100_000));
+
+        cat.add(new SeparatorEntry("aero_cam_sync.configuration.activation.misc"));
+
+        cat.add(new ToggleButtonEntry(
+                "aero_cam_sync.configuration.dropCacheOnAllMiss",
+                "aero_cam_sync.configuration.dropCacheOnAllMiss.tooltip",
+                Config.DROP_CACHE_ON_ALL_MISS));
+
+        cat.add(new ToggleButtonEntry(
+                "aero_cam_sync.configuration.disableOnFlying",
+                "aero_cam_sync.configuration.disableOnFlying.tooltip",
+                Config.DISABLE_ON_FLYING));
 
         return cat;
     }
