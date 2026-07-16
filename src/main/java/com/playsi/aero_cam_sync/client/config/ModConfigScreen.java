@@ -3,6 +3,7 @@ package com.playsi.aero_cam_sync.client.config;
 import com.playsi.aero_cam_sync.client.config.categories.*;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigCategory;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList;
+import com.playsi.aero_cam_sync.client.config.ui.ModeIndicator;
 import com.playsi.aero_cam_sync.client.KeyBindings;
 import com.playsi.aero_cam_sync.client.config.entries.*;
 import net.minecraft.client.gui.GuiGraphics;
@@ -223,6 +224,9 @@ public class ModConfigScreen extends Screen {
 
         // Заголовок
         gfx.drawCenteredString(this.font, this.title, this.width / 2, 7, 0xFFFFFF);
+
+        // Бейдж текущего режима справа (client-only / server-client), вся логика в ModeIndicator
+        ModeIndicator.render(gfx, this.width, 7, mouseX, mouseY);
 
         // Обновить кнопки каждый фрейм
         if (resetButton != null) resetButton.active = hasShiftDown();

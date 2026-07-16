@@ -1,6 +1,11 @@
 {
   "aero_cam_sync.configuration.title": "Настройки Aeronautics Camera Sync",
 
+  "aero_cam_sync.configuration.mode.clientOnly": "режим: client-only",
+  "aero_cam_sync.configuration.mode.clientOnly.tooltip": "Сервер не подключён",
+  "aero_cam_sync.configuration.mode.clientServer": "режим: server-client",
+  "aero_cam_sync.configuration.mode.clientServer.tooltip": "Сервер подключён",
+
   "aero_cam_sync.configuration.general": "Основное",
   "aero_cam_sync.configuration.enabled": "Включить мод",
   "aero_cam_sync.configuration.enabled.tooltip": "Включает или отключает мод",

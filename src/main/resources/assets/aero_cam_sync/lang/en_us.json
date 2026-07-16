@@ -1,6 +1,11 @@
 {
   "aero_cam_sync.configuration.title": "Aeronautics Camera Sync Config",
 
+\  "aero_cam_sync.configuration.mode.clientOnly": "mode: client-only",
+  "aero_cam_sync.configuration.mode.clientOnly.tooltip": "Server not connected",
+  "aero_cam_sync.configuration.mode.clientServer": "mode: server-client",
+  "aero_cam_sync.configuration.mode.clientServer.tooltip": "Server connected",
+
   "aero_cam_sync.configuration.general": "General",
   "aero_cam_sync.configuration.enabled": "Enable Mod",
   "aero_cam_sync.configuration.enabled.tooltip": "Enables or disables the entire mod",

@@ -42,6 +42,8 @@ public class Config {
             BUILDER.comment("Drop tossed items from the tilted camera (origin + direction) instead of the hitbox head")
                     .define("dropFromCamera", true);
 
+    // NB: коллизия проверяется только по блокам обычного мира. Внутри блоков
+    //     самого Sable-сабвела (плота/контраптиона) она НЕ считается — просто знать.
     public static final ModConfigSpec.BooleanValue CAMERA_COLLISION =
             BUILDER.comment("Keep the shifted camera out of solid blocks (prevents seeing through walls / X-ray when tilted next to a wall)")
                     .define("cameraCollision", true);
@@ -124,16 +126,20 @@ public class Config {
                             o -> o instanceof String);
 
     // ── Server Blacklist ───────────────────────────────────────────────────────
-    public static final ModConfigSpec.BooleanValue SERVER_BLACKLIST_ENABLED =
-            BUILDER.comment("Disable camera tilt when player holds a listed item (server-side)")
-                    .define("serverBlacklistEnabled", false);
-
-
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> SERVER_BLACKLIST_IDS =
-            BUILDER.comment("Item IDs that disable camera tilt (server-side), e.g. minecraft:bow")
-                    .defineListAllowEmpty("serverBlacklistIds",
-                            java.util.Collections.emptyList(),
-                            o -> o instanceof String);
+    // TODO: серверный чёрный список отключён — с ним нужно работать отдельно
+    //   (нигде не читается, требует серверной части: синхронизация списка,
+    //    проверка на server-миксинах, права/команды). Раскомментировать вместе
+    //    с реализацией и ServerBlacklistCategory.
+//    public static final ModConfigSpec.BooleanValue SERVER_BLACKLIST_ENABLED =
+//            BUILDER.comment("Disable camera tilt when player holds a listed item (server-side)")
+//                    .define("serverBlacklistEnabled", false);
+//
+//
+//    public static final ModConfigSpec.ConfigValue<List<? extends String>> SERVER_BLACKLIST_IDS =
+//            BUILDER.comment("Item IDs that disable camera tilt (server-side), e.g. minecraft:bow")
+//                    .defineListAllowEmpty("serverBlacklistIds",
+//                            java.util.Collections.emptyList(),
+//                            o -> o instanceof String);
 
     // ── Raycast ────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.IntValue RAYCAST_COUNT =
