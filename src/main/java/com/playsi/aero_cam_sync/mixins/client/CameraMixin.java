@@ -28,12 +28,21 @@ public abstract class CameraMixin {
             boolean detached, boolean thirdPersonReverse,
             float partialTick, CallbackInfo ci) {
 
+        Minecraft mc = Minecraft.getInstance();
+
+        // Тилт — ТОЛЬКО для главной игровой камеры. Некоторые экраны (напр. DiagramScreen
+        // из Create Simulated) рендерят второй вид СВОЕЙ отдельной камерой, для которой
+        // Camera#setup тоже вызывается. Наклон и коллизия (wallScale) хранятся глобально в
+        // CameraController; вторичная камера пересчитывала общий wallScale от своей позиции и
+        // роняла его → пила wallScale → джиттер наклона на главном виде при открытом экране.
+        // Игнор не-главных камер убирает причину, и наклон плавно следует за палубой даже в меню.
+        if ((Object) this != mc.gameRenderer.getMainCamera()) return;
+
         CameraController.tickApplyState();
 
         if (!Config.MOD_ENABLED.get()) return;
         if (!CameraController.shouldApplyTilt()) return;
 
-        Minecraft mc = Minecraft.getInstance();
         float deltaTime = mc.getTimer().getRealtimeDeltaTicks();
 
         ClientSubLevel subLevel = SubLevelTracker.getClientSubLevel(mc.player);

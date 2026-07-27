@@ -33,6 +33,9 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### ACS local notes (personal, not tracked) ###
+/ACS подводные камни.md
+
 ### Minecraft Modding ###
 run/
 !**/src/**/run/

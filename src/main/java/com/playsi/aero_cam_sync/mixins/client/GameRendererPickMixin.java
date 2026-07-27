@@ -4,6 +4,7 @@ import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import com.playsi.aero_cam_sync.client.utils.CameraController;
 import com.playsi.aero_cam_sync.client.utils.LevelClipMixinState;
+import dev.ryanhcode.sable.Sable;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -60,8 +61,13 @@ public abstract class GameRendererPickMixin {
         }
 
         boolean hasBlock = blockHit.getType() != HitResult.Type.MISS;
+        // ВАЖНО: Sable-clip для хита по саблевелу возвращает точку в ЛОКАЛЬНЫХ (plot)
+        // координатах палубы, а не в мировых. Ванильный distanceToSqr от мировой позиции
+        // камеры до такой точки даёт мусор (расстояние до далёкого plot-региона) → кламп
+        // «сущность не дальше блока» ломается и моб выбирается сквозь блок на палубе.
+        // distanceSquaredWithSubLevels проецирует обе точки в мир и меряет честно.
         double blockDistSqr = hasBlock
-                ? eyes.distanceToSqr(blockHit.getLocation())
+                ? Sable.HELPER.distanceSquaredWithSubLevels(mc.level, eyes, blockHit.getLocation())
                 : Double.MAX_VALUE;
 
         if (Config.DEBUG_PICK_RAYS.get()) {
@@ -84,9 +90,11 @@ public abstract class GameRendererPickMixin {
         );
 
         // Сущность побеждает только если она перед блоком (и в радиусе досягаемости).
+        // Дистанцию до сущности тоже меряем саблевел-осведомлённо: и сущность, и блок
+        // могут жить в plot-пространстве палубы, сравнивать их в мире можно только так.
         HitResult result;
         if (entityHit != null
-                && eyes.distanceToSqr(entityHit.getLocation()) <= blockDistSqr) {
+                && Sable.HELPER.distanceSquaredWithSubLevels(mc.level, eyes, entityHit.getLocation()) <= blockDistSqr) {
             result = entityHit;
         } else {
             result = blockHit; // может быть MISS — это корректно: перекрестие смотрит в пустоту
