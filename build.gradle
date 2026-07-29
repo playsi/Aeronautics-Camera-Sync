@@ -96,6 +96,18 @@ dependencies {
         exclude group: "com.tterrag.registrate"
     }
 
+    // --- ВРЕМЕННО: Cut Through в dev-ране (отладка конфликта пика) ---------------------
+    // Cut Through тоже правит GameRenderer#pick (MixinExtras-обёртки внутри pick(Entity,DDF)):
+    // повторяет блочный клип с ClipContext.Block.COLLIDER, чтобы моб за травой стал доступен,
+    // и возвращает исходный блок-хит, если сущности не нашлось. Наш GameRendererPickMixin
+    // инжектится в TAIL внешнего pick(F) и перезаписывает mc.hitResult целиком — из-за этого
+    // функционал Cut Through пропадает. Держим мод в ране, чтобы конфликт был воспроизводим.
+    // puzzles-lib — обязательная зависимость Cut Through.
+    // УБРАТЬ вместе с версиями в gradle.properties, когда конфликт будет закрыт.
+    runtimeOnly "maven.modrinth:cut-through:${cut_through_version}"
+    runtimeOnly "maven.modrinth:puzzles-lib:${puzzles_lib_version}"
+    // ---------------------------------------------------------------------------------
+
 
     tasks.withType(ProcessResources).configureEach {
         var replaceProperties = [

@@ -4,6 +4,7 @@ import com.playsi.aero_cam_sync.client.config.Config;
 import com.playsi.aero_cam_sync.client.debug.DebugRayRenderer;
 import com.playsi.aero_cam_sync.client.utils.CameraController;
 import com.playsi.aero_cam_sync.client.utils.LevelClipMixinState;
+import com.playsi.aero_cam_sync.client.utils.ModCompat;
 import dev.ryanhcode.sable.Sable;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -76,10 +77,38 @@ public abstract class GameRendererPickMixin {
             DebugRayRenderer.submitPickRay(eyes, blockEnd, 1.0f, 1.0f, 0.0f);
         }
 
-        // --- Сущности: ищем тоже от камеры, но НЕ дальше попавшего блока, иначе
+        // --- Окклюзия сущностей ОТДЕЛЕНА от прицельного блок-хита ---------------------
+        // OUTLINE = во что целишься (у травы outline есть), COLLIDER = что реально
+        // преграждает удар (у травы коллизии нет). Раньше мы использовали OUTLINE для
+        // обеих ролей, поэтому трава считалась стеной и ломала Cut Through, который бьёт
+        // сквозь такие блоки (он сам делает ровно этот COLLIDER-клип внутри pick).
+        // С Cut Through берём COLLIDER: блоки палубы коллизию имеют → сквозь них по-прежнему
+        // не пробить (Issue #26), а трава больше не отсекает моба за ней.
+        // Без Cut Through остаёмся на OUTLINE, чтобы не привносить чужую механику.
+        double occludeDistSqr = blockDistSqr;
+        if (ModCompat.cutThroughLoaded()) {
+            LevelClipMixinState.inTiltedClip = true;
+            BlockHitResult colliderHit;
+            try {
+                colliderHit = mc.level.clip(new ClipContext(
+                        eyes, blockEnd,
+                        ClipContext.Block.COLLIDER,
+                        ClipContext.Fluid.NONE,
+                        player
+                ));
+            } finally {
+                LevelClipMixinState.inTiltedClip = false;
+            }
+            occludeDistSqr = colliderHit.getType() != HitResult.Type.MISS
+                    ? Sable.HELPER.distanceSquaredWithSubLevels(mc.level, eyes, colliderHit.getLocation())
+                    : Double.MAX_VALUE;
+        }
+        boolean hasOccluder = occludeDistSqr != Double.MAX_VALUE;
+
+        // --- Сущности: ищем тоже от камеры, но НЕ дальше преграждающего блока, иначе
         //     можно было бы «прокликать» моба сквозь стену (Issue: mob through blocks). ---
-        double entitySearch = hasBlock
-                ? Math.min(entityReach, Math.sqrt(blockDistSqr))
+        double entitySearch = hasOccluder
+                ? Math.min(entityReach, Math.sqrt(occludeDistSqr))
                 : entityReach;
         Vec3 entityEnd = eyes.add(look.scale(entitySearch));
         AABB searchBox = new AABB(eyes, entityEnd).inflate(1.0);
@@ -89,12 +118,14 @@ public abstract class GameRendererPickMixin {
                 entitySearch * entitySearch
         );
 
-        // Сущность побеждает только если она перед блоком (и в радиусе досягаемости).
-        // Дистанцию до сущности тоже меряем саблевел-осведомлённо: и сущность, и блок
-        // могут жить в plot-пространстве палубы, сравнивать их в мире можно только так.
+        // Сущность побеждает, только если она перед ПРЕГРАДОЙ (а не перед любым блоком с
+        // outline) и в радиусе досягаемости. Дистанцию меряем саблевел-осведомлённо: и
+        // сущность, и блок могут жить в plot-пространстве палубы (см. §1 подводных камней).
+        // Если сущности нет — возвращаем прицельный OUTLINE-хит, поэтому по самой траве
+        // по-прежнему можно попасть, когда за ней никого нет (поведение Cut Through).
         HitResult result;
         if (entityHit != null
-                && Sable.HELPER.distanceSquaredWithSubLevels(mc.level, eyes, entityHit.getLocation()) <= blockDistSqr) {
+                && Sable.HELPER.distanceSquaredWithSubLevels(mc.level, eyes, entityHit.getLocation()) <= occludeDistSqr) {
             result = entityHit;
         } else {
             result = blockHit; // может быть MISS — это корректно: перекрестие смотрит в пустоту
