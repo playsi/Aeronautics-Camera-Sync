@@ -1,7 +1,6 @@
 package com.playsi.aero_cam_sync.network;
 
 import com.playsi.aero_cam_sync.AeroCamSync;
-import com.playsi.aero_cam_sync.client.config.Config;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -24,14 +23,21 @@ public record HandshakePacket() implements CustomPacketPayload {
     /** Вызывается на сервере когда пришёл пакет от клиента */
     public static void handle(HandshakePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            if (Config.DEBUG_MESSAGES.get()) {
-                AeroCamSync.LOGGER.info(
-                        "[AeroCamSync] Handshake received from: {}",
-                        ctx.player().getName().getString()
-                );
-            }
-
+            // Ответ идёт ПЕРВЫМ и ничем не обусловлен: это протокол. Всё, что способно
+            // бросить (логи, конфиг), — строго после. Иначе исключение обрывает рукопожатие,
+            // ответ до клиента не доходит и он навсегда остаётся в CLIENT_ONLY.
             ctx.reply(new HandshakeResponsePacket());
+
+            // ВАЖНО: этот обработчик выполняется на СЕРВЕРЕ, а Config — КЛИЕНТСКИЙ
+            // (ModConfig.Type.CLIENT, регистрируется только в @Mod(dist = Dist.CLIENT)).
+            // На выделенном сервере спека не зарегистрирована, и любой .get() кидает
+            // IllegalStateException «Cannot get config value before config is loaded» — Issue #33.
+            // Серверное логирование не должно зависеть от клиентской настройки вообще:
+            // уровень выбирает лог-конфиг сервера, а не DEBUG_MESSAGES игрока.
+            AeroCamSync.LOGGER.debug(
+                    "[AeroCamSync] Handshake received from: {}",
+                    ctx.player().getName().getString()
+            );
         });
     }
 }
