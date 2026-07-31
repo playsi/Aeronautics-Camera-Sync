@@ -78,9 +78,11 @@ public class AeroCamSyncClient {
 
     @SubscribeEvent
     static void onClientConnectedToServer(ClientPlayerNetworkEvent.LoggingIn event) {
-        SideManager.reset();
+        // Фиксируем «только на клиенте» на всю сессию: менять сторону в уже начатой
+        // игре нельзя, иначе клиент и сервер разъезжаются (см. SideManager).
+        SideManager.beginSession();
 
-        if (Config.IGNORE_SERVER.get()) {
+        if (SideManager.isIgnoreServerSession()) {
             SideManager.setSide(SideManager.Side.CLIENT_ONLY);
             if (Config.DEBUG_MESSAGES.get()) {
                 AeroCamSync.LOGGER.info("[AeroCamSync] IGNORE_SERVER enabled, skipping handshake -> CLIENT_ONLY");

@@ -34,7 +34,8 @@ bin/
 .DS_Store
 
 ### ACS local notes (personal, not tracked) ###
-/ACS подводные камни.md
+/ACS-PITFALLS.md
+/RELEASE-CHECKLIST.md
 
 ### Minecraft Modding ###
 run/

@@ -22,6 +22,19 @@ public class SideManager {
 
     private static Side currentSide = Side.UNKNOWN;
 
+    /**
+     * Значение {@link Config#IGNORE_SERVER}, зафиксированное на входе в мир, на всю сессию.
+     *
+     * <p>Опцию НЕЛЬЗЯ читать вживую. На сервере с модом переключение прямо в игре
+     * мгновенно уводит клиент в клиент-онли ветку ({@code AUTO_DISABLE_FOR_RAYCAST_ITEMS}
+     * выравнивает камеру, предсказание идёт без наклона) и одновременно глушит
+     * {@link #sendTiltToServer()} — а сервер продолжает крутить снаряды/взгляд по
+     * ПОСЛЕДНЕМУ полученному тилту, потому что {@link ServerTiltStore} никто не чистит.
+     * Клиент целится прямо, сервер стреляет под старым наклоном → траектории расходятся.
+     * Поэтому смена режима применяется только на следующем заходе в мир.</p>
+     */
+    private static boolean ignoreServerSession = false;
+
     public static Side getSide() {
         return currentSide;
     }
@@ -33,8 +46,24 @@ public class SideManager {
         currentSide = side;
     }
 
+    /** Зафиксированный на сессию режим «только клиент» (см. {@link #ignoreServerSession}). */
+    public static boolean isIgnoreServerSession() {
+        return ignoreServerSession;
+    }
+
+    /**
+     * {@code true}, если игрок переключил «только на клиенте» уже в мире:
+     * настройка сохранена, но вступит в силу лишь при следующем заходе.
+     * Используется только для подсказки в экране настроек.
+     */
+    public static boolean isIgnoreServerPending() {
+        return currentSide != Side.UNKNOWN
+                && Config.isLoaded()
+                && Config.IGNORE_SERVER.get() != ignoreServerSession;
+    }
+
     public static boolean isClientOnly() {
-        if (Config.IGNORE_SERVER.get()) {
+        if (ignoreServerSession) {
             return true;
         }
 
@@ -42,7 +71,7 @@ public class SideManager {
     }
 
     public static boolean isClientServer() {
-        if (Config.IGNORE_SERVER.get()) {
+        if (ignoreServerSession) {
             return false;
         }
 
@@ -82,10 +111,33 @@ public class SideManager {
         PacketDistributor.sendToServer(TiltSyncPayload.from(q, rotActive, posShift, dropFromCamera));
     }
 
+    /**
+     * Начало сессии (вход в мир/на сервер): сбрасываем сторону и фиксируем
+     * «только на клиенте» на всю сессию.
+     */
+    public static void beginSession() {
+        currentSide = Side.UNKNOWN;
+        latchIgnoreServer();
+        if (Config.isLoaded() && Config.DEBUG_MESSAGES.get()) {
+            AeroCamSync.LOGGER.info("[AeroCamSync] Session started, clientOnly latched = {}", ignoreServerSession);
+        }
+    }
+
     public static void reset() {
-        if (Config.DEBUG_MESSAGES.get()) {
+        if (Config.isLoaded() && Config.DEBUG_MESSAGES.get()) {
             AeroCamSync.LOGGER.info("[AeroCamSync] SideManager reset (disconnect)");
         }
         currentSide = Side.UNKNOWN;
+        // Вне мира держим фиксацию актуальной: подсказка «нужен перезаход» гаснет,
+        // а следующий заход всё равно перечитает конфиг в beginSession().
+        latchIgnoreServer();
+    }
+
+    private static void latchIgnoreServer() {
+        // Конфиг клиентский: на выделенном сервере его спека не зарегистрирована,
+        // а .get() до загрузки бросает IllegalStateException (Issue #19, #33).
+        if (Config.isLoaded()) {
+            ignoreServerSession = Config.IGNORE_SERVER.get();
+        }
     }
 }
