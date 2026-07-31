@@ -33,10 +33,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-### ACS local notes (personal, not tracked) ###
-/ACS-PITFALLS.md
-/RELEASE-CHECKLIST.md
-
 ### Minecraft Modding ###
 run/
 !**/src/**/run/
@@ -44,3 +40,4 @@ run/
 repo/
 !**/src/**/repo/
 /runs/
+/internal docs/
