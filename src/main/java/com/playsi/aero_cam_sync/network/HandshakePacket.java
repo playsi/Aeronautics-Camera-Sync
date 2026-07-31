@@ -30,10 +30,7 @@ public record HandshakePacket() implements CustomPacketPayload {
 
             // ВАЖНО: этот обработчик выполняется на СЕРВЕРЕ, а Config — КЛИЕНТСКИЙ
             // (ModConfig.Type.CLIENT, регистрируется только в @Mod(dist = Dist.CLIENT)).
-            // На выделенном сервере спека не зарегистрирована, и любой .get() кидает
-            // IllegalStateException «Cannot get config value before config is loaded» — Issue #33.
-            // Серверное логирование не должно зависеть от клиентской настройки вообще:
-            // уровень выбирает лог-конфиг сервера, а не DEBUG_MESSAGES игрока.
+            // На выделенном сервере спека не зарегистрирована
             AeroCamSync.LOGGER.debug(
                     "[AeroCamSync] Handshake received from: {}",
                     ctx.player().getName().getString()
