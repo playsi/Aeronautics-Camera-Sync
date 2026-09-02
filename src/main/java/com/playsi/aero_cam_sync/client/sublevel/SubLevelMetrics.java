@@ -1,4 +1,4 @@
-package com.playsi.aero_cam_sync.client.utils;
+package com.playsi.aero_cam_sync.client.sublevel;
 
 import com.playsi.aero_cam_sync.client.config.Config;
 import dev.ryanhcode.sable.companion.math.BoundingBox3ic;
@@ -9,12 +9,12 @@ import net.minecraft.world.level.Level;
 import java.util.UUID;
 
 /**
- * Характеристики сабвела, на котором стоит игрок: масса, число блоков, габариты
- * (длина X / высота Y / ширина Z в блоках).
+ * Properties of the sub-level the player stands on: mass, block count and dimensions (X length, Y
+ * height, Z width, in blocks).
  *
- * <p>Габариты — O(1) (читаются из границ плота). Масса берётся готовой у Sable
- * ({@link SubLevelMassProvider}) — без ежесекундного пересчёта. Число блоков
- * (если порог включён) перебирается с редким кэшем, чтобы не фризить.</p>
+ * <p>The dimensions are O(1), read from the raft bounds. The mass comes ready from Sable
+ * ({@link SubLevelMassProvider}), with no per-second recompute. The block count, if its threshold is
+ * enabled, is walked behind an infrequent cache to avoid freezes.
  */
 public final class SubLevelMetrics {
 

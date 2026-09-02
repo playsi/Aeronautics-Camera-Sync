@@ -1,4 +1,4 @@
-package com.playsi.aero_cam_sync.client.utils;
+package com.playsi.aero_cam_sync.client.tilt;
 
 import com.playsi.aero_cam_sync.AeroCamSync;
 import com.playsi.aero_cam_sync.client.config.Config;
@@ -37,7 +37,7 @@ public class BlacklistHandle {
         List<? extends String> currentBlacklist = Config.CLIENT_BLACKLIST_IDS.get();
 
         if (currentBlacklist.contains(itemId)) {
-            // Удаляем из черного списка
+            // Remove from the blacklist.
             List<String> newBlacklist = new java.util.ArrayList<>(currentBlacklist);
             newBlacklist.remove(itemId);
             Config.CLIENT_BLACKLIST_IDS.set(newBlacklist);
@@ -52,7 +52,7 @@ public class BlacklistHandle {
                 AeroCamSync.LOGGER.info("[AeroCamSync] Removed {} from blacklist", itemId);
             }
         } else {
-            // Добавляем в черный список
+            // Add to the blacklist.
             List<String> newBlacklist = new java.util.ArrayList<>(currentBlacklist);
             newBlacklist.add(itemId);
             Config.CLIENT_BLACKLIST_IDS.set(newBlacklist);
@@ -85,12 +85,12 @@ public class BlacklistHandle {
     }
 
     /**
-     * Держит ли игрок предмет, который при использовании стреляет/кидает/райкастит
-     * вдоль «сырого» направления взгляда (xRot/yRot), а не наклонённой камеры.
+     * Whether the player holds an item that, on use, shoots, throws or raycasts along the RAW look
+     * direction (xRot/yRot) rather than the tilted camera.
      *
-     * <p>Такие предметы (снежки и прочие метательные снаряды, вёдра, луки, удочки)
-     * на сервере летят/ставятся мимо перекрестия, пока камера наклонена. Определяем
-     * их по классу, чтобы покрыть и модовые предметы без правки списка ID.</p>
+     * <p>Such items (snowballs and other throwables, buckets, bows, fishing rods) fly or land off
+     * the crosshair on the server while the camera is tilted. They are identified by class, so
+     * modded items are covered without editing an ID list.
      */
     public static boolean holdRaycastItem() {
         Minecraft mc = Minecraft.getInstance();
@@ -104,11 +104,11 @@ public class BlacklistHandle {
     private static boolean isRaycastItem(ItemStack stack) {
         if (stack.isEmpty()) return false;
         Item item = stack.getItem();
-        return item instanceof ProjectileItem         // снежки, яйца, жемчуг края*, зелья, и т.п.
-                || item instanceof BucketItem          // вёдра (вкл. MobBucketItem)
-                || item instanceof ProjectileWeaponItem // луки, арбалеты
+        return item instanceof ProjectileItem         // snowballs, eggs, ender pearls*, potions
+                || item instanceof BucketItem          // buckets (MobBucketItem included)
+                || item instanceof ProjectileWeaponItem // bows, crossbows
                 || item instanceof FishingRodItem
-                || item instanceof EnderpearlItem;     // *Enderpearl не реализует ProjectileItem
+                || item instanceof EnderpearlItem;     // *Enderpearl does not implement ProjectileItem
     }
 
     private static String getItemId(ItemStack stack) {
