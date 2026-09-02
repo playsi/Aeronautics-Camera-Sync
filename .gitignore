@@ -41,3 +41,4 @@ repo/
 !**/src/**/repo/
 /runs/
 /internal docs/
+/docs/superpowers/
