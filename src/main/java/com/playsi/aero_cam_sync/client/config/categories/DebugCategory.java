@@ -7,6 +7,15 @@ import com.playsi.aero_cam_sync.client.config.ui.ConfigCategory;
 public class DebugCategory {
 public static ConfigCategory build() {
     ConfigCategory debug = new ConfigCategory("aero_cam_sync.configuration.debug");
+
+        // First of all: this is the one switch that answers "is the tilt to blame at all". Unlike
+        // Enable Mod it also kills a foreign API source (shouldApplyTilt checks the source BEFORE
+        // the mod flag), so every complaint starts here.
+        debug.add(new ToggleButtonEntry(
+                "aero_cam_sync.configuration.suppressAll",
+                        "aero_cam_sync.configuration.suppressAll.tooltip",
+                Config.SUPPRESS_ALL));
+
         debug.add(new SeparatorEntry("Samples ray"));
 
         debug.add(new ToggleButtonEntry(
@@ -34,6 +43,7 @@ public static ConfigCategory build() {
                 "aero_cam_sync.configuration.debugMessages",
                         "",
                 Config.DEBUG_MESSAGES));
+
         return (debug);
     }
 }

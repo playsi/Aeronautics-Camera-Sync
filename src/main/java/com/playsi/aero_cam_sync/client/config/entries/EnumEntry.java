@@ -15,28 +15,23 @@ import java.util.function.Function;
 import static com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList.ENTRY_H;
 
 /**
- * Строка со кнопкой-«крутилкой» для enum-значений.
+ * A row with a cycling button for enum values.
  * <p>
- * Клик по кнопке циклически переключает варианты перечисления.
- * Размер и позиция кнопки совпадают с {@link ToggleButtonEntry}: 68×18 px,
- * прижата к правому краю с отступом 4 px.
+ * Clicking the button cycles through the enum constants. Its size and position match
+ * {@link ToggleButtonEntry}: 68x18 px, flush right with a 4 px margin.
  *
- * @param <E> тип перечисления
+ * @param <E> the enum type
  */
 public class EnumEntry<E extends Enum<E>> extends ConfigOptionList.Entry {
 
     private static final int BTN_W = 68;
     private static final int BTN_H = 18;
 
-    // ── адаптер конфига ───────────────────────────────────────────────────────
-
     private interface CfgAdapter<E> {
         E    get();
         void set(E value);
         E    getDefault();
     }
-
-    // ── поля ─────────────────────────────────────────────────────────────────
 
     private final E[]              values;
     private final CfgAdapter<E>    adapter;
@@ -47,14 +42,12 @@ public class EnumEntry<E extends Enum<E>> extends ConfigOptionList.Entry {
 
     private final Button button;
 
-    // ── конструктор ───────────────────────────────────────────────────────────
-
     /**
-     * @param labelKey   ключ i18n для подписи строки слева
-     * @param tooltipKey ключ i18n тултипа (пустая строка — без тултипа)
-     * @param config     {@link ModConfigSpec.EnumValue} из конфига
-     * @param values     все варианты перечисления, например {@code MyEnum.values()}
-     * @param labelOf    функция «enum → отображаемый Component»
+     * @param labelKey   i18n key for the label on the left
+     * @param tooltipKey i18n key for the tooltip (empty string means no tooltip)
+     * @param config     the {@link ModConfigSpec.EnumValue} from the config
+     * @param values     every enum constant, e.g. {@code MyEnum.values()}
+     * @param labelOf    a function mapping an enum constant to its displayed Component
      */
     public EnumEntry(String labelKey, String tooltipKey,
                      ModConfigSpec.EnumValue<E> config,
@@ -85,15 +78,10 @@ public class EnumEntry<E extends Enum<E>> extends ConfigOptionList.Entry {
             button.setTooltip(Tooltip.create(Component.translatable(tooltipKey)));
     }
 
-    // ── вспомогательное ───────────────────────────────────────────────────────
-
-    /** Следующий вариант по кругу. */
     private E next(E current) {
         int idx = (current.ordinal() + 1) % values.length;
         return values[idx];
     }
-
-    // ── render ────────────────────────────────────────────────────────────────
 
     @Override
     public void render(GuiGraphics gfx, int index, int top, int left, int width, int height,
@@ -113,8 +101,6 @@ public class EnumEntry<E extends Enum<E>> extends ConfigOptionList.Entry {
 
     @Override public List<? extends GuiEventListener> children()    { return List.of(button); }
     @Override public List<? extends NarratableEntry>  narratables() { return List.of(button); }
-
-    // ── snapshot / restore / reset ────────────────────────────────────────────
 
     @Override public void saveSnapshot() { snapshot = currentValue; }
 

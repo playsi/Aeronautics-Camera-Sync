@@ -14,7 +14,7 @@ import java.util.List;
 import static com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList.ENTRY_H;
 
 /**
- * Строка с чекбоксом. Если хочешь кнопку вкл/выкл — используй {@link ToggleButtonEntry}.
+ * A row with a checkbox. For an on/off button use {@link ToggleButtonEntry} instead.
  */
 public class BooleanEntry extends ConfigOptionList.Entry {
 

@@ -14,10 +14,10 @@ import java.util.List;
 import static com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList.ENTRY_H;
 
 /**
- * Строка с кнопкой ВКЛ / ВЫКЛ.
+ * A row with an ON / OFF button.
  * <p>
- * Размер и позиция кнопки намеренно совпадают с полем ввода числа в {@link SliderEntry}:
- * ширина 68 px, высота 18 px, прижата к правому краю с отступом 4 px.
+ * Its size and position match the numeric input in {@link SliderEntry}: 68 px wide,
+ * 18 px high, flush right with a 4 px margin.
  */
 public class ToggleButtonEntry extends ConfigOptionList.Entry {
 
@@ -49,15 +49,11 @@ public class ToggleButtonEntry extends ConfigOptionList.Entry {
             button.setTooltip(Tooltip.create(Component.translatable(tooltipKey)));
     }
 
-    // ── метки ────────────────────────────────────────────────────────────────
-
     private static Component label(boolean value) {
         return value
                 ? Component.translatable("aero_cam_sync.configuration.toggle.on")
                 : Component.translatable("aero_cam_sync.configuration.toggle.off");
     }
-
-    // ── render ───────────────────────────────────────────────────────────────
 
     @Override
     public void render(GuiGraphics gfx, int index, int top, int left, int width, int height,
@@ -77,8 +73,6 @@ public class ToggleButtonEntry extends ConfigOptionList.Entry {
 
     @Override public List<? extends GuiEventListener> children()    { return List.of(button); }
     @Override public List<? extends NarratableEntry>  narratables() { return List.of(button); }
-
-    // ── snapshot / restore / reset ────────────────────────────────────────────
 
     @Override public void saveSnapshot() { snapshot = currentValue; }
 

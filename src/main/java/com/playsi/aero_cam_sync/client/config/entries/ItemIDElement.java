@@ -16,14 +16,14 @@ import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * EditBox с выпадающим списком автодополнения ID предметов.
+ * An EditBox with an item-ID autocomplete dropdown.
  * <p>
- * Работает как самостоятельный {@link GuiEventListener} — его можно
- * добавить в {@code children()} родительского Entry.
+ * Works as a standalone {@link GuiEventListener}, so it can be added to the {@code children()} of a
+ * parent Entry.
  * <p>
- * Автодополнение фильтрует {@link BuiltInRegistries#ITEM} по введённому тексту
- * (поиск substring, не только prefix). Показывает максимум {@value #MAX_SUGGESTIONS}
- * подсказок; Tab/Click — применяют выбранную.
+ * Autocomplete filters {@link BuiltInRegistries#ITEM} by the typed text (substring, not only
+ * prefix). It shows at most {@value #MAX_SUGGESTIONS} suggestions; Tab and click apply the selected
+ * one.
  */
 public class ItemIDElement implements GuiEventListener, NarratableEntry {
 
@@ -31,25 +31,15 @@ public class ItemIDElement implements GuiEventListener, NarratableEntry {
     private static final int ROW_H           = 12;
     private static final int DROPDOWN_PAD    =  2;
 
-    // ── виджеты ──────────────────────────────────────────────────────────────
-
     private final EditBox editBox;
 
-    // ── позиция / размер (задаются через layout()) ────────────────────────────
-
     private int x, y, w, h;
-
-    // ── автодополнение ────────────────────────────────────────────────────────
 
     private final List<String> suggestions = new ArrayList<>();
     private int selectedSuggestion = -1;
     private boolean dropdownVisible = false;
 
-    // ── состояние ────────────────────────────────────────────────────────────
-
     private boolean focused = false;
-
-    // ── конструктор ───────────────────────────────────────────────────────────
 
     public ItemIDElement(String initialValue, Consumer<String> onChange) {
         Minecraft mc = Minecraft.getInstance();
@@ -65,16 +55,12 @@ public class ItemIDElement implements GuiEventListener, NarratableEntry {
         });
     }
 
-    // ── layout (вызывать каждый фрейм из render родителя) ────────────────────
-
     public void layout(int x, int y, int w, int h) {
         this.x = x; this.y = y; this.w = w; this.h = h;
         editBox.setX(x);
         editBox.setY(y);
         editBox.setWidth(w);
     }
-
-    // ── автодополнение ────────────────────────────────────────────────────────
 
     private void rebuildSuggestions(String input) {
         suggestions.clear();
@@ -101,14 +87,11 @@ public class ItemIDElement implements GuiEventListener, NarratableEntry {
         if (idx < 0 || idx >= suggestions.size()) return;
         String chosen = suggestions.get(idx);
         editBox.setValue(chosen);
-        // setValue не вызывает responder автоматически во всех версиях MC,
-        // поэтому дёргаем вручную через симуляцию — используем внутренний responder
-        // через setValue который уже зарегистрирован в setResponder выше.
+        // setValue does not invoke the responder automatically in every MC version, so the one
+        // registered in setResponder above is relied on here.
         dropdownVisible = false;
         suggestions.clear();
     }
-
-    // ── render ────────────────────────────────────────────────────────────────
 
     public void render(GuiGraphics gfx, int mouseX, int mouseY, float delta) {
         editBox.render(gfx, mouseX, mouseY, delta);
@@ -145,8 +128,6 @@ public class ItemIDElement implements GuiEventListener, NarratableEntry {
         }
     }
 
-    // ── GuiEventListener ──────────────────────────────────────────────────────
-
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (dropdownVisible && !suggestions.isEmpty()) {
@@ -169,12 +150,12 @@ public class ItemIDElement implements GuiEventListener, NarratableEntry {
     }
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        // Tab — применить первую / выбранную подсказку
+        // Tab applies the first or selected suggestion.
         if (keyCode == 258 /* Tab */ && dropdownVisible && !suggestions.isEmpty()) {
             applySuggestion(selectedSuggestion >= 0 ? selectedSuggestion : 0);
             return true;
         }
-        // Стрелки вверх/вниз — навигация по выпадашке
+        // Up and down arrows navigate the dropdown.
         if (dropdownVisible) {
             if (keyCode == 264 /* Down */ ) {
                 selectedSuggestion = Math.min(selectedSuggestion + 1, suggestions.size() - 1);
@@ -236,8 +217,6 @@ public class ItemIDElement implements GuiEventListener, NarratableEntry {
     @Override
     public boolean isFocused() { return focused; }
 
-    // ── NarratableEntry ───────────────────────────────────────────────────────
-
     @Override
     public NarrationPriority narrationPriority() {
         return focused ? NarrationPriority.FOCUSED : NarrationPriority.NONE;
@@ -247,8 +226,6 @@ public class ItemIDElement implements GuiEventListener, NarratableEntry {
     public void updateNarration(NarrationElementOutput output) {
         output.add(NarratedElementType.TITLE, editBox.getValue());
     }
-
-    // ── публичный геттер ──────────────────────────────────────────────────────
 
     public String getValue() { return editBox.getValue(); }
 }

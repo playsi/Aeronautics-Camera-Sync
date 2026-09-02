@@ -40,8 +40,7 @@ public class ClientBlacklistCategory {
         cat.add(new KeyBindEntry(
                 "aero_cam_sync.configuration.addMainhandItemKey",
                 "aero_cam_sync.configuration.addMainhandItemKey.tooltip",
-                KeyBindings.ADD_MAINHAND_ITEM,
-                Config.ADD_MAINHAND_ITEM_KEY));
+                KeyBindings.ADD_MAINHAND_ITEM));
 
         cat.add(new SeparatorEntry("aero_cam_sync.configuration.clientBlacklist.separator"));
 

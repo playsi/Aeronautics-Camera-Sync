@@ -7,35 +7,36 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Config {
-    // По умолчанию почти пустой: снаряды/вёдра наклоняются сервером (на сервере с
-    // модом) либо авто-отключаются по классу предмета на клиент-онли сервере
-    // (AUTO_DISABLE_FOR_RAYCAST_ITEMS). Здесь — ручные исключения для предметов,
-    // которые не ловятся авто-детектом по классу (не Projectile/BucketItem).
+    // Manual exceptions only, for items the class-based auto-detection does not catch (neither
+    // Projectile nor BucketItem). Before adding one, check the symptom is not just a pick from an
+    // untilted camera, which the common path already fixes.
     private static final List<String> DEFAULT_CLIENT_BLACKLIST_IDS = List.of(
-            "create:handheld_worldshaper",
             "create:potato_cannon"
     );
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
 
-    // ── General ────────────────────────────────────────────────────────────────
+    /**
+     * A gate on the ACS tilt alone, not a switch for the mod: a foreign source is checked BEFORE this flag
+     * and survives it, and the mixins are woven in regardless. "Switch off the tilt entirely" is
+     * {@link #SUPPRESS_ALL}; "exclude the mod" means removing the jar.
+     */
     public static final ModConfigSpec.BooleanValue MOD_ENABLED =
-            BUILDER.comment("Enable mod").define("enabled", true);
+            BUILDER.comment(
+                    "Turn off the mod's own camera tilt.\n" +
+                            "This is not a full off switch: the mixins stay loaded, and a tilt\n" +
+                            "another mod drives through the API keeps running. Use suppressAll\n" +
+                            "for that one, or remove the jar to rule the mod out completely."
+            ).define("enabled", true);
 
-    public static final ModConfigSpec.BooleanValue ALLOW_3RD_PERSON =
-            BUILDER.comment("Allow in 3rd person view (BETA)").define("allow3rdPerson", false);
+    // Third person is not a player setting: a foreign mod controls it through
+    // FrameConditions.baselineInThirdPerson.
 
     public static final ModConfigSpec.BooleanValue IGNORE_SERVER =
             BUILDER.comment("Force use client").define("clientOnly", false);
 
-    public static final ModConfigSpec.ConfigValue<String> TOGGLE_KEY =
-            BUILDER.comment("Toggle mod keybind")
-                    .define("toggleKey", "key.keyboard.i");
+    // Keybinds must NOT be stored here: NeoForge re-reads options.txt over everything at the end
+    // of mod loading. See KeyBindings.
 
-    public static final ModConfigSpec.ConfigValue<String> OPEN_CONFIG_KEY =
-            BUILDER.comment("Open config screen keybind")
-                    .define("openConfigKey", "");
-
-    // ── Camera ─────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.BooleanValue MODIFY_CAMERA_ROT =
             BUILDER.comment("Rotate camera").define("rotateCamera", true);
 
@@ -43,14 +44,13 @@ public class Config {
             BUILDER.comment("Move camera").define("moveCamera", true);
 
     // Works only when the mod is installed on the server (see PlayerDropTiltMixin,
-    // gated by ServerPlayer + ServerTiltStore) — no effect in client-only mode.
+    // gated by ServerPlayer + ServerTiltStore), so it has no effect in client-only mode.
     public static final ModConfigSpec.BooleanValue DROP_FROM_CAMERA =
             BUILDER.comment("Drop tossed items from the tilted camera (origin + direction) instead of the hitbox head\n" +
-                            "Requires the mod to be installed on the server — no effect otherwise.")
+                            "Requires the mod to be installed on the server. No effect otherwise.")
                     .define("dropFromCamera", true);
 
-    // NB: коллизия проверяется только по блокам обычного мира. Внутри блоков
-    //     самого Sable-сабвела (плота/контраптиона) она НЕ считается — просто знать.
+    // Tested against ordinary world blocks only, NOT inside the sub-level's own blocks.
     public static final ModConfigSpec.BooleanValue CAMERA_COLLISION =
             BUILDER.comment("Keep the shifted camera out of solid blocks (prevents seeing through walls / X-ray when tilted next to a wall)")
                     .define("cameraCollision", true);
@@ -67,7 +67,6 @@ public class Config {
             BUILDER.comment("Maximum tilt threshold (0.0 - 1.0)")
                     .defineInRange("minNormalY", 0.8, 0.0, 1.0);
 
-    // ── Activation thresholds (per sub-level you stand on) ───────────────────────
     // Each criterion is independent: when enabled, the sub-level must be >= the value,
     // otherwise the camera does not tilt. All disabled by default = always tilt.
     public static final ModConfigSpec.BooleanValue GATE_MASS_ENABLED =
@@ -105,7 +104,6 @@ public class Config {
             BUILDER.comment("Minimum sub-level width in blocks (Z) to allow tilt")
                     .defineInRange("gateWidthMin", 3, 1, 100_000);
 
-    // ── Client Blacklist ───────────────────────────────────────────────────────
     public static final ModConfigSpec.BooleanValue CLIENT_BLACKLIST_ENABLED =
             BUILDER.comment("Disable camera tilt when player holds a listed item (client-side)")
                     .define("clientBlacklistEnabled", true);
@@ -122,21 +120,14 @@ public class Config {
                             "while standing on a tilted sub-level.")
                     .define("autoDisableForRaycastItems", true);
 
-    public static final ModConfigSpec.ConfigValue<String> ADD_MAINHAND_ITEM_KEY =
-            BUILDER.comment("Add mainhand item to blacklist if not already present")
-                    .define("addMainhandItemKey", "");
-
     public static final ModConfigSpec.ConfigValue<List<? extends String>> CLIENT_BLACKLIST_IDS =
             BUILDER.comment("Item IDs that disable camera tilt (client-side), e.g. minecraft:bow")
                     .defineListAllowEmpty("clientBlacklistIds",
                             DEFAULT_CLIENT_BLACKLIST_IDS,
                             o -> o instanceof String);
 
-    // ── Server Blacklist ───────────────────────────────────────────────────────
-    // TODO: серверный чёрный список отключён — с ним нужно работать отдельно
-    //   (нигде не читается, требует серверной части: синхронизация списка,
-    //    проверка на server-миксинах, права/команды). Раскомментировать вместе
-    //    с реализацией и ServerBlacklistCategory.
+    // TODO: disabled. Needs a server half: list sync, checks in the server mixins, permissions.
+    //   Uncomment together with the implementation and ServerBlacklistCategory.
 //    public static final ModConfigSpec.BooleanValue SERVER_BLACKLIST_ENABLED =
 //            BUILDER.comment("Disable camera tilt when player holds a listed item (server-side)")
 //                    .define("serverBlacklistEnabled", false);
@@ -148,7 +139,6 @@ public class Config {
 //                            java.util.Collections.emptyList(),
 //                            o -> o instanceof String);
 
-    // ── Raycast ────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.IntValue RAYCAST_COUNT =
             BUILDER.comment("Number of raycasts (10 is usually enough)")
                     .defineInRange("count", 10, 1, 10000);
@@ -161,17 +151,24 @@ public class Config {
             BUILDER.comment("Raycast start offset from foot")
                     .defineInRange("upLength", 0.2, -1.0, 1.0);
 
-    public static final ModConfigSpec.BooleanValue DROP_CACHE_ON_ALL_MISS =
-            BUILDER.comment("Immediately forgot sublevel when player step off")
-                    .define("dropOnAllMiss", true);
+    // A weight, not a veto: the centre ray answers "what am I STANDING on" without the ring's lag,
+    // but over a hatch it falls through and names the sub-level below. It must outweigh a dissenting
+    // minority of the ring and lose to a unanimous majority around a hole.
+    public static final ModConfigSpec.IntValue RAYCAST_CENTER_WEIGHT =
+            BUILDER.comment("Vote weight of the ray straight under the player (0 disables it)")
+                    .defineInRange("centerWeight", 3, 0, 64);
+
+    // Do not raise this. At 1 the crown is held only on an EXACT tie, where both sub-levels are
+    // underfoot and either choice is equally right. The ring already lags (it is wider than the
+    // player and keeps catching the one just left), and 2 turns that lag into something felt.
+    public static final ModConfigSpec.IntValue VOTE_MARGIN =
+            BUILDER.comment("How many more rays a neighbouring deck needs before it takes the player over")
+                    .defineInRange("voteMargin", 1, 1, 64);
 
     public static final ModConfigSpec.BooleanValue DISABLE_ON_FLYING =
             BUILDER.comment("Stop camera tilt when flying (Creative or Spectator)")
                     .define("disableOnFlying", true);
 
-
-
-    // ── Debug ──────────────────────────────────────────────────────────────────
     public static final ModConfigSpec.BooleanValue DEBUG_RAYS =
             BUILDER.comment("Render debug raycasts").define("rays", false);
 
@@ -183,13 +180,23 @@ public class Config {
             BUILDER.comment("time until the pick rays disappear")
                     .defineInRange("pickRaysTime", 3.0, 0.01, 600.0);
 
-
     public static final ModConfigSpec.BooleanValue DEBUG_MESSAGES =
             BUILDER.comment("Show debug message in console").define("debugMessages", false);
 
+    /**
+     * Kills the tilt entirely, foreign sources included: the one button that answers "the tilt has
+     * nothing to do with it", since the mod toggle does not.
+     *
+     * <p>It kills the TILT, not the mod: the mixins stay woven in and the ray net keeps working.
+     */
+    public static final ModConfigSpec.BooleanValue SUPPRESS_ALL =
+            BUILDER.comment(
+                    "Diagnostic: force the tilt off, including a tilt another mod drives\n" +
+                            "through the API. This silences the tilt, not the mod \u2014 to rule\n" +
+                            "ACS out entirely, remove it from the mods folder."
+            ).define("suppressAll", false);
 
-    // ── Meta ──────────────────────────────────────────────────────────────────
-    public static final int CURRENT_CONFIG_SCHEMA = 3; // breaking changes
+    public static final int CURRENT_CONFIG_SCHEMA = 5; // breaking changes
 
     public static final ModConfigSpec.IntValue CONFIG_SCHEMA_VERSION =
             BUILDER.comment(

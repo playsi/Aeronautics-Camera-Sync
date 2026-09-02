@@ -10,11 +10,9 @@
 
   "aero_cam_sync.configuration.general": "Основное",
   "aero_cam_sync.configuration.enabled": "Включить мод",
-  "aero_cam_sync.configuration.enabled.tooltip": "Включает или отключает мод",
+  "aero_cam_sync.configuration.enabled.tooltip": "Выключает собственный наклон камеры. Мод при этом не отключается целиком: миксины остаются загружены, а наклон, которым через API управляет другой мод, продолжает работать. Чтобы остановить и его, используйте Suppress All, а чтобы исключить мод полностью, уберите джарник из папки модов",
   "aero_cam_sync.configuration.ignoreServer": "Только на клиенте",
   "aero_cam_sync.configuration.ignoreServer.tooltip": "Принудительно использовать только клиентскую часть мода. ПРИМЕНЯЕТЬСЯ после перезахода в мир",
-  "aero_cam_sync.configuration.allow3rdPerson": "Разрешить в виде от третьего лица (БЕТА)",
-  "aero_cam_sync.configuration.allow3rdPerson.tooltip": "Применять наклон камеры в режиме от третьего лица",
   "aero_cam_sync.configuration.minNormalY": "Макс. угол наклона",
   "aero_cam_sync.configuration.minNormalY.tooltip": "Максимальный угол наклона камеры (0.0 = любой, 1.0 = только ровно)",
   "aero_cam_sync.configuration.general.misc": "Прочее",
@@ -37,8 +35,6 @@
   "aero_cam_sync.configuration.camera.serverOnly": "Требует мод на сервере",
   "aero_cam_sync.configuration.dropFromCamera": "Выброс предметов от камеры",
   "aero_cam_sync.configuration.dropFromCamera.tooltip": "Исправляет траекторию выброшенного игроком предмета. Требует установки мода на сервере.",
-  "aero_cam_sync.configuration.dropCacheOnAllMiss": "Сбрасывать подуровень мгновенно",
-  "aero_cam_sync.configuration.dropCacheOnAllMiss.tooltip": "Предотвращает повторный наклон камеры при нахождении игрока над подуровнем",
   "aero_cam_sync.configuration.disableOnFlying": "Отключать при полёте",
   "aero_cam_sync.configuration.disableOnFlying.tooltip": "Отключает наклон при полёте (креатив, наблюдатель)",
 
@@ -96,8 +92,14 @@
   "aero_cam_sync.configuration.downLength.tooltip": "Максимальное расстояние вниз для поиска поверхности",
   "aero_cam_sync.configuration.upLength": "Смещение от ног",
   "aero_cam_sync.configuration.upLength.tooltip": "Вертикальное смещение точки начала лучей от ног",
+  "aero_cam_sync.configuration.centerWeight": "Вес центрального луча",
+  "aero_cam_sync.configuration.centerWeight.tooltip": "Сколько голосов стоит луч ровно под ногами. Он отвечает, на какой палубе игрок стоит, а кольцо — какой касается. 0 отключает его",
+  "aero_cam_sync.configuration.voteMargin": "Запас перехода между палубами",
+  "aero_cam_sync.configuration.voteMargin.tooltip": "На сколько лучей соседняя палуба должна обогнать текущую, чтобы забрать игрока себе. Больше — спокойнее камера на стыке двух палуб",
 
   "aero_cam_sync.configuration.debug": "Отладка",
+  "aero_cam_sync.configuration.suppressAll": "Подавить весь наклон",
+  "aero_cam_sync.configuration.suppressAll.tooltip": "Диагностика: принудительно выключает наклон у всех, включая наклон, которым через API управляет другой мод. Обычный тогл наклона его намеренно не останавливает. Глушится наклон, а не мод: чтобы исключить мод целиком, уберите джарник из папки модов",
   "aero_cam_sync.configuration.rays": "Показать лучи",
   "aero_cam_sync.configuration.rays.tooltip": "Отображать лучи выборки в мире",
   "aero_cam_sync.configuration.pickRays": "Показать луч выбора",
@@ -130,8 +132,19 @@
   "key.category.aero_cam_sync": "Aeronautics Camera Sync",
   "msg.aero_cam_sync.enabled": "§aНаклон камеры: ВКЛ",
   "msg.aero_cam_sync.disabled": "§cНаклон камеры: ВЫКЛ",
+  "msg.aero_cam_sync.suppressed_by": "§e* Наклон камеры выключен модом %s",
 
   "key.aero_cam_sync.open_config": "Открыть настройки мода",
+  "key.aero_cam_sync.add_mainhand_item_client": "Добавить/убрать предмет в руке из списка",
+
+  "key.aero_cam_sync.devtest.suppress": "[dev] API: подавить наклон на 3 с",
+  "key.aero_cam_sync.devtest.snapshot": "[dev] API: снимок состояния в чат",
+  "key.aero_cam_sync.devtest.vanilla_eye": "[dev] API: сравнить область withVanillaEye",
+  "key.aero_cam_sync.devtest.policy": "[dev] API: сменить режим политики прицела",
+  "key.aero_cam_sync.devtest.probe": "[dev] API: пустить пробные лучи политики",
+  "key.aero_cam_sync.devtest.collision": "[dev] API: переключить коллизию камеры",
+  "key.aero_cam_sync.devtest.third_person": "[dev] API: переключить третье лицо",
+
 
   "screen.aero_cam_sync.config_reset.title": "Aeronautics Camera Sync — сброс конфигурации",
   "screen.aero_cam_sync.config_reset.body1": "Файл конфигурации устарел и может вызывать ошибки.",

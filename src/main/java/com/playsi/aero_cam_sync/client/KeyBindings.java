@@ -1,10 +1,23 @@
 package com.playsi.aero_cam_sync.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.playsi.aero_cam_sync.client.config.Config;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 
+/**
+ * The mod's keybinds.
+ *
+ * <p>They are stored in exactly one place, the vanilla {@code options.txt}. All three are
+ * registered through {@code RegisterKeyMappingsEvent}, so Minecraft reads them at startup and shows
+ * them on its own controls screen alongside the rest.
+ *
+ * <p>They have no copy in the mod config, and must not. NeoForge calls {@code options.load(true)}
+ * as the last line of mod loading, and that runs EVERY KeyMapping through options.txt, overwriting
+ * any value applied from a mod config earlier. While the copy existed this looked like "I cleared
+ * the bind and it came back after a restart": the mod config was written to disk and options.txt
+ * was not.
+ */
 public class KeyBindings {
 
     public static final KeyMapping TOGGLE = new KeyMapping(
@@ -28,38 +41,16 @@ public class KeyBindings {
             "key.category.aero_cam_sync"
     );
 
-    /** Вызвать после загрузки конфига — применить сохранённые значения */
-    public static void loadFromConfig() {
-        applyKey(TOGGLE,      Config.TOGGLE_KEY.get());
-        applyKey(OPEN_CONFIG, Config.OPEN_CONFIG_KEY.get());
-    }
-
-    /** Сохранить текущие значения KeyMapping в конфиг */
-    public static void saveToConfig() {
-        Config.TOGGLE_KEY.set(TOGGLE.getKey().getName());
-        Config.OPEN_CONFIG_KEY.set(OPEN_CONFIG.getKey().getName());
-    }
-
-    public static void applyKey(KeyMapping mapping, String keyName) {
-        InputConstants.Key key = keyName.equals("key.unknown") || keyName.isEmpty()
-                ? InputConstants.UNKNOWN
-                : InputConstants.getKey(keyName);
+    /**
+     * Assign a key from the mod's settings screen and write options.txt immediately.
+     *
+     * <p>The write must happen here: quitting the game does not save options.txt by itself, only
+     * the vanilla settings screens do, on close. Without an explicit save the change would last
+     * only until the end of the session.
+     */
+    public static void applyKey(KeyMapping mapping, InputConstants.Key key) {
         mapping.setKey(key);
         KeyMapping.resetMapping();
-    }
-
-    public static void syncFromMappings() {
-        Config.TOGGLE_KEY.set(TOGGLE.getKey().getName());
-        Config.OPEN_CONFIG_KEY.set(OPEN_CONFIG.getKey().getName());
-    }
-
-    private static InputConstants.Key parseKey(String keyName) {
-        if (keyName == null || keyName.isEmpty() || keyName.equals("key.unknown"))
-            return InputConstants.UNKNOWN;
-        try {
-            return InputConstants.getKey(keyName);
-        } catch (Exception e) {
-            return InputConstants.UNKNOWN;
-        }
+        Minecraft.getInstance().options.save();
     }
 }

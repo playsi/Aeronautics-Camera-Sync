@@ -29,6 +29,20 @@ public class RaycastCategory {
                 -1.0, 1.0, 0.05,
                 -1.0, 1.0));
 
+        raycast.add(new SliderEntry(
+                "aero_cam_sync.configuration.centerWeight",
+                "aero_cam_sync.configuration.centerWeight.tooltip",
+                Config.RAYCAST_CENTER_WEIGHT,
+                0, 16, 1,
+                0, 64));
+
+        raycast.add(new SliderEntry(
+                "aero_cam_sync.configuration.voteMargin",
+                "aero_cam_sync.configuration.voteMargin.tooltip",
+                Config.VOTE_MARGIN,
+                1, 16, 1,
+                1, 64));
+
         return (raycast);
     }
 }

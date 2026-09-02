@@ -22,8 +22,6 @@ public class SnapSlider extends AbstractSliderButton {
         updateMessage();
     }
 
-    // ── внутренние утилиты ────────────────────────────────────────────────────
-
     private static double normalise(double v, double min, double max) {
         return (max - min) == 0 ? 0 : Mth.clamp((v - min) / (max - min), 0, 1);
     }
@@ -34,15 +32,10 @@ public class SnapSlider extends AbstractSliderButton {
         return Mth.clamp(snapped, min, max);
     }
 
-    // ── публичный API ─────────────────────────────────────────────────────────
-
-    /** Установить значение извне (например, из EditBox) без зацикливания. */
     public void setExternalValue(double realVal) {
         this.value = normalise(realVal, min, max);
         updateMessage();
     }
-
-    // ── AbstractSliderButton ──────────────────────────────────────────────────
 
     @Override
     protected void updateMessage() {

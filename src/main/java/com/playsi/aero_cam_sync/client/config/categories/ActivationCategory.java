@@ -7,9 +7,9 @@ import com.playsi.aero_cam_sync.client.config.entries.ToggleButtonEntry;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigCategory;
 
 /**
- * Пороги активации наклона по характеристикам сабвела, на котором стоит игрок.
- * Каждый критерий — одна компактная строка: тумблер + «≥ значение».
- * Все выключены по умолчанию (наклон работает как раньше).
+ * Tilt activation thresholds, based on the properties of the sub-level the player stands on. Each
+ * criterion is one compact row: a toggle plus a "greater or equal" value. All are off by default,
+ * so the tilt behaves as before.
  */
 public class ActivationCategory {
 
@@ -51,11 +51,6 @@ public class ActivationCategory {
                 1, 64, 1, 1, 100_000));
 
         cat.add(new SeparatorEntry("aero_cam_sync.configuration.activation.misc"));
-
-        cat.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.dropCacheOnAllMiss",
-                "aero_cam_sync.configuration.dropCacheOnAllMiss.tooltip",
-                Config.DROP_CACHE_ON_ALL_MISS));
 
         cat.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.disableOnFlying",
