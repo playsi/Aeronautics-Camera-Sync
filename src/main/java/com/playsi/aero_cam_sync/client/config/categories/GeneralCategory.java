@@ -18,8 +18,7 @@ public class GeneralCategory {
         general.add(new KeyBindEntry(
                 "aero_cam_sync.configuration.toggleKey",
                 "aero_cam_sync.configuration.toggleKey.tooltip",
-                KeyBindings.TOGGLE,
-                Config.TOGGLE_KEY));
+                KeyBindings.TOGGLE));
 
         general.add(new SliderEntry(
                 "aero_cam_sync.configuration.minNormalY",
@@ -31,11 +30,6 @@ public class GeneralCategory {
         general.add(new SeparatorEntry("aero_cam_sync.configuration.general.misc"));
 
         general.add(new ToggleButtonEntry(
-                "aero_cam_sync.configuration.allow3rdPerson",
-                "aero_cam_sync.configuration.allow3rdPerson.tooltip",
-                Config.ALLOW_3RD_PERSON));
-
-        general.add(new ToggleButtonEntry(
                 "aero_cam_sync.configuration.ignoreServer",
                 "aero_cam_sync.configuration.ignoreServer.tooltip",
                 Config.IGNORE_SERVER));
@@ -43,8 +37,7 @@ public class GeneralCategory {
         general.add(new KeyBindEntry(
                 "aero_cam_sync.configuration.openConfigKey",
                 "aero_cam_sync.configuration.openConfigKey.tooltip",
-                KeyBindings.OPEN_CONFIG,
-                Config.OPEN_CONFIG_KEY));
+                KeyBindings.OPEN_CONFIG));
 
         return (general);
     }

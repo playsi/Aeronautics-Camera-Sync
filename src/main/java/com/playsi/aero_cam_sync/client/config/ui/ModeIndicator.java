@@ -10,31 +10,31 @@ import net.minecraft.network.chat.Component;
 import java.util.List;
 
 /**
- * Лейбл текущего режима работы мода в правой части шапки экрана настроек.
+ * The current-mode label in the right of the settings screen header.
  *
  * <ul>
- *   <li>{@link SideManager.Side#CLIENT_SERVER} — «mode: server-client», подсказка «сервер подключён»;</li>
- *   <li>{@link SideManager.Side#CLIENT_ONLY} — «mode: client-only», подсказка «сервер не подключён»;</li>
- *   <li>{@link SideManager.Side#UNKNOWN} (главное меню / ещё не определён) — не рендерится вовсе.</li>
+ *   <li>{@link SideManager.Side#CLIENT_SERVER}: "mode: server-client", tooltip "server connected";</li>
+ *   <li>{@link SideManager.Side#CLIENT_ONLY}: "mode: client-only", tooltip "server not connected";</li>
+ *   <li>{@link SideManager.Side#UNKNOWN} (main menu, or not yet determined): not rendered at all.</li>
  * </ul>
  *
- * Вся логика режима здесь; {@link com.playsi.aero_cam_sync.client.config.ModConfigScreen}
- * лишь вызывает {@link #render}.
+ * All the mode logic lives here; {@link com.playsi.aero_cam_sync.client.config.ModConfigScreen}
+ * only calls {@link #render}.
  */
 public final class ModeIndicator {
 
     private static final int PADDING_RIGHT = 6;
-    private static final int COLOR_CLIENT_ONLY   = 0xFFE0A030; // янтарный
-    private static final int COLOR_CLIENT_SERVER = 0xFF57C15A; // зелёный
-    private static final int COLOR_PENDING       = 0xFF9A9A9A; // серый: режим ждёт перезахода
+    private static final int COLOR_CLIENT_ONLY   = 0xFFE0A030; // amber
+    private static final int COLOR_CLIENT_SERVER = 0xFF57C15A; // green
+    private static final int COLOR_PENDING       = 0xFF9A9A9A; // grey: mode awaits a rejoin
 
     private ModeIndicator() {}
 
     /**
-     * Рисует бейдж режима справа на строке {@code topY} и подсказку при наведении.
-     * В режиме {@link SideManager.Side#UNKNOWN} не делает ничего.
+     * Draws the mode badge on the right of row {@code topY}, plus a tooltip on hover. Does nothing
+     * in {@link SideManager.Side#UNKNOWN}.
      *
-     * @param topY верх строки текста (обычно та же, что и у заголовка)
+     * @param topY the top of the text row (usually the same as the title's)
      */
     public static void render(GuiGraphics gfx, int screenWidth, int topY, int mouseX, int mouseY) {
         SideManager.Side side = SideManager.getSide();
@@ -54,9 +54,9 @@ public final class ModeIndicator {
             color   = COLOR_CLIENT_ONLY;
         }
 
-        // «Только на клиенте» переключено уже в мире: режим сменится лишь на следующем
-        // заходе (SideManager фиксирует опцию на сессию), и бейдж обязан это показать —
-        // иначе он врёт про то, как мод работает прямо сейчас.
+        // Client-only was toggled while already in a world: the mode changes on the next join
+        // (SideManager latches the option per session), and the badge must show that, or it lies
+        // about how the mod is working right now.
         boolean pending = SideManager.isIgnoreServerPending();
 
         Component shown = pending

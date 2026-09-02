@@ -18,11 +18,11 @@ import java.util.List;
 import static com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList.ENTRY_H;
 
 /**
- * Одна компактная строка порога: «метка — [Вкл/Выкл] — ползунок — поле ≥значение».
- * Когда критерий выключен, ползунок и поле гаснут (становятся неактивны).
+ * One compact threshold row: label, on/off toggle, slider, and a "greater or equal" value field.
+ * With the criterion off, the slider and the field are greyed out.
  *
- * <p>Объединяет тумблер и значение в одну строку — для габаритов (длина/высота/ширина)
- * это вдвое компактнее и аккуратнее, чем отдельные строки.</p>
+ * <p>Combining toggle and value in one row is twice as compact as separate rows, which matters for
+ * the dimension criteria (length, height, width).
  */
 public class ThresholdEntry extends ConfigOptionList.Entry {
 
@@ -97,8 +97,6 @@ public class ThresholdEntry extends ConfigOptionList.Entry {
         applyEnabledState();
     }
 
-    // ── widgets ───────────────────────────────────────────────────────────────
-
     private Button buildToggle() {
         Button b = Button.builder(toggleLabel(enabled), btn -> {
             enabled = !enabled;
@@ -154,8 +152,6 @@ public class ThresholdEntry extends ConfigOptionList.Entry {
                  : Component.translatable("aero_cam_sync.configuration.toggle.off");
     }
 
-    // ── render ────────────────────────────────────────────────────────────────
-
     @Override
     public void render(GuiGraphics gfx, int index, int top, int left, int width, int height,
                        int mouseX, int mouseY, boolean hovered, float delta) {
@@ -185,8 +181,6 @@ public class ThresholdEntry extends ConfigOptionList.Entry {
         box.render(gfx, mouseX, mouseY, delta);
     }
 
-    // ── formatting ──────────────────────────────────────────────────────────────
-
     private String shortStr(double v) {
         if (isInt) return String.valueOf((int) Math.round(v));
         String s = String.format("%.2f", v).replaceAll("0+$", "");
@@ -203,8 +197,6 @@ public class ThresholdEntry extends ConfigOptionList.Entry {
 
     @Override public List<? extends GuiEventListener> children()    { return List.of(toggle, slider, box); }
     @Override public List<? extends NarratableEntry>  narratables() { return List.of(toggle, slider, box); }
-
-    // ── snapshot / restore / reset ────────────────────────────────────────────
 
     @Override public void saveSnapshot() {
         enabledSnapshot = enabled;

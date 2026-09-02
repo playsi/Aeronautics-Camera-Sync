@@ -17,30 +17,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Строка blacklist-списка высотой {@value #H} px.
+ * A blacklist row, {@value #H} px high.
  * <p>
- * Layout (слева направо, сверху вниз):
+ * Layout (left to right, top to bottom):
  * <pre>
- * ┌─────────────────────────────────────────────────────────────────┐
- * │ ┌──────┐  [  EditBox с автодополнением         ] [✕]           │
- * │ │ item │  ─────────────────────────────────────────────         │
- * │ │ icon │  Item Display Name                                     │
- * └─────────────────────────────────────────────────────────────────┘
+ * +-----------------------------------------------------------------+
+ * | +------+  [  EditBox with autocomplete         ] [x]            |
+ * | | item |  ---------------------------------------------         |
+ * | | icon |  Item Display Name                                     |
+ * +-----------------------------------------------------------------+
  * </pre>
- * Содержит вложенный {@link ItemIDElement} — компонент с EditBox
- * и выпадающим списком автодополнения.
+ * Contains a nested {@link ItemIDElement}: an EditBox with an autocomplete dropdown.
  * <p>
- * Три состояния иконки:
+ * The icon has three states:
  * <ul>
- *   <li>{@link IconState#OK}        — предмет найден, рендерится нормально</li>
- *   <li>{@link IconState#NOT_FOUND} — ID не найден в реестре → серый «?»</li>
- *   <li>{@link IconState#ERROR}     — исключение при рендере → красный «!»,
- *                                     тултип с текстом исключения</li>
+ *   <li>{@link IconState#OK}: the item was found and renders normally</li>
+ *   <li>{@link IconState#NOT_FOUND}: the ID is not in the registry, showing a grey "?"</li>
+ *   <li>{@link IconState#ERROR}: rendering threw, showing a red "!" and a tooltip with the
+ *       exception text</li>
  * </ul>
  */
 public class ListEntry extends ConfigOptionList.Entry {
 
-    /** Высота одной строки blacklist-элемента. */
     public static final int H = 64;
 
     private static final int ICON_SIZE  = 48;
@@ -49,35 +47,22 @@ public class ListEntry extends ConfigOptionList.Entry {
     private static final int BTN_DEL_H  = 18;
     private static final int SEP_H      =  1;
 
-    // ── состояние иконки ──────────────────────────────────────────────────────
-
     private enum IconState { OK, NOT_FOUND, ERROR }
 
     private IconState iconState = IconState.NOT_FOUND;
-    /** Текст последнего исключения — показывается в тултипе при IconState.ERROR */
     private String lastError = "";
-
-    // ── данные строки ─────────────────────────────────────────────────────────
 
     private String value;
     private final java.util.function.Consumer<String> onChanged;
     private final Runnable onDelete;
 
-    // ── виджеты ──────────────────────────────────────────────────────────────
-
     private final ItemIDElement itemIDElement;
     private final Button deleteBtn;
-
-    // ── кеш иконки ───────────────────────────────────────────────────────────
 
     private ItemStack cachedStack = ItemStack.EMPTY;
     private String    cachedId    = "";
 
-    // ── геометрия (заполняется в render) ─────────────────────────────────────
-
     private int iconX, iconY;
-
-    // ── конструктор ───────────────────────────────────────────────────────────
 
     public ListEntry(String initialValue,
                      java.util.function.Consumer<String> onChanged,
@@ -100,8 +85,6 @@ public class ListEntry extends ConfigOptionList.Entry {
         updateCache(initialValue);
     }
 
-    // ── кеш ──────────────────────────────────────────────────────────────────
-
     private void invalidateCache() { cachedId = null; }
 
     private void updateCache(String id) {
@@ -121,16 +104,14 @@ public class ListEntry extends ConfigOptionList.Entry {
                     cachedStack = new ItemStack(item);
                     iconState   = IconState.OK;
                 }
-                // rl найден, но это AIR → NOT_FOUND (иконка останется пустой)
+                // rl resolved but is AIR, so NOT_FOUND (the icon stays empty)
             }
-            // rl == null или не в реестре → NOT_FOUND
+            // rl == null or not in the registry, so NOT_FOUND
         } catch (Exception e) {
             lastError = e.getClass().getSimpleName() + ": " + e.getMessage();
             iconState = IconState.ERROR;
         }
     }
-
-    // ── render ────────────────────────────────────────────────────────────────
 
     @Override
     public int getItemHeight() { return H; }
@@ -144,7 +125,6 @@ public class ListEntry extends ConfigOptionList.Entry {
 
         if (cachedId == null) updateCache(value);
 
-        // ── превью-рамка ─────────────────────────────────────────────────────
         iconX = left + PAD;
         iconY = top  + (H - ICON_SIZE) / 2;
 
@@ -155,13 +135,11 @@ public class ListEntry extends ConfigOptionList.Entry {
 
         renderIcon(gfx, mc);
 
-        // ── тултип при наведении на рамку иконки ─────────────────────────────
         if (mouseX >= iconX && mouseX <= iconX + ICON_SIZE
                 && mouseY >= iconY && mouseY <= iconY + ICON_SIZE) {
             renderIconTooltip(gfx, mc, mouseX, mouseY);
         }
 
-        // ── правая колонка ────────────────────────────────────────────────────
         int colX    = iconX + ICON_SIZE + PAD;
         int colW    = left + width - colX - PAD;
 
@@ -178,11 +156,9 @@ public class ListEntry extends ConfigOptionList.Entry {
         itemIDElement.layout(colX, editY, editW, editH);
         itemIDElement.render(gfx, mouseX, mouseY, delta);
 
-        // ── разделитель ───────────────────────────────────────────────────────
         int sepY = top + topRowH;
         gfx.fill(colX, sepY, left + width - PAD, sepY + SEP_H, 0xFF444444);
 
-        // ── нижняя половина: название предмета ───────────────────────────────
         int nameY = iconY + ICON_SIZE - (ICON_SIZE / 4) - 4;
 
         Component name;
@@ -196,8 +172,6 @@ public class ListEntry extends ConfigOptionList.Entry {
 
         gfx.drawString(mc.font, name, colX + 2, nameY, 0xAAAAAA, false);
     }
-
-    // ── рендер иконки ─────────────────────────────────────────────────────────
 
     private void renderIcon(GuiGraphics gfx, Minecraft mc) {
         switch (iconState) {
@@ -236,8 +210,6 @@ public class ListEntry extends ConfigOptionList.Entry {
                 color);
     }
 
-    // ── тултип иконки ─────────────────────────────────────────────────────────
-
     private void renderIconTooltip(GuiGraphics gfx, Minecraft mc, int mouseX, int mouseY) {
         List<Component> lines = new ArrayList<>();
 
@@ -257,15 +229,13 @@ public class ListEntry extends ConfigOptionList.Entry {
             }
             case ERROR -> {
                 lines.add(Component.translatable("aero_cam_sync.configuration.list.tooltip.error"));
-                // Имя класса исключения — отдельной строкой, красным
+                // The exception class name on its own line, in red.
                 lines.add(Component.literal(lastError).withStyle(s -> s.withColor(0xFF5555)));
             }
         }
 
         gfx.renderTooltip(mc.font, lines, java.util.Optional.empty(), mouseX, mouseY);
     }
-
-    // ── children / narratables ────────────────────────────────────────────────
 
     @Override
     public List<? extends GuiEventListener> children() {
@@ -277,14 +247,10 @@ public class ListEntry extends ConfigOptionList.Entry {
         return List.of(itemIDElement, deleteBtn);
     }
 
-    // ── Entry contract ────────────────────────────────────────────────────────
-
     @Override public void saveSnapshot()             { }
     @Override public void restoreSnapshot()          { }
     @Override public void reset()                    { }
     @Override public boolean hasHardLimitViolation() { return false; }
-
-    // ── геттер ───────────────────────────────────────────────────────────────
 
     public String getValue() { return value; }
 }

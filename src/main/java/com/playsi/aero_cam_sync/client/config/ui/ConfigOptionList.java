@@ -44,7 +44,7 @@ public class ConfigOptionList extends ContainerObjectSelectionList<ConfigOptionL
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (!this.isMouseOver(mouseX, mouseY)) return false;
 
-        // Обрабатываем клик по скроллбару напрямую
+        // Handle a scrollbar click directly.
         if (button == 0) {
             int scrollbarX = getScrollbarPosition();
             if (mouseX >= scrollbarX && mouseX < scrollbarX + 6) {
@@ -52,7 +52,7 @@ public class ConfigOptionList extends ContainerObjectSelectionList<ConfigOptionL
             }
         }
 
-        // Ищем entry через наши getRowTop/getRowBottom
+        // Find the entry through the local getRowTop/getRowBottom.
         for (int i = 0; i < children().size(); i++) {
             int top    = getRowTop(i);
             int bottom = getRowBottom(i);
@@ -70,9 +70,7 @@ public class ConfigOptionList extends ContainerObjectSelectionList<ConfigOptionL
         return false;
     }
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Base Entry — общий контракт для всех строк списка
-    // ═══════════════════════════════════════════════════════════════════════
+    // Base Entry: the common contract for every row in the list
 
     public abstract static class Entry extends ContainerObjectSelectionList.Entry<Entry> {
 

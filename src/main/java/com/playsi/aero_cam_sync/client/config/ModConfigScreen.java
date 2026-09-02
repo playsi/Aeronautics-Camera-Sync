@@ -4,7 +4,6 @@ import com.playsi.aero_cam_sync.client.config.categories.*;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigCategory;
 import com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList;
 import com.playsi.aero_cam_sync.client.config.ui.ModeIndicator;
-import com.playsi.aero_cam_sync.client.KeyBindings;
 import com.playsi.aero_cam_sync.client.config.entries.*;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -29,21 +28,17 @@ public class ModConfigScreen extends Screen {
     private Button resetButton;
     private Button saveButton;
 
-
     private final List<String> clientBlacklist = new ArrayList<>();
 
     private final List<ConfigCategory> categories = new ArrayList<>();
 
-
     private int activeCategory = 0;
-
 
     private List<String> clientSnapshot = new ArrayList<>();
 
     public ModConfigScreen(Screen parent) {
         super(Component.translatable("aero_cam_sync.configuration.title"));
         this.parent = parent;
-        KeyBindings.syncFromMappings();
 
         clientBlacklist.addAll(Config.CLIENT_BLACKLIST_IDS.get());
         clientSnapshot = new ArrayList<>(clientBlacklist);
@@ -86,8 +81,6 @@ public class ModConfigScreen extends Screen {
         init();
         optionList.setScrollAmount(scroll);
     }
-
-    // ── Init ───────────────────────────────────────────────────────────────────
 
     @Override
     protected void init() {
@@ -149,7 +142,7 @@ public class ModConfigScreen extends Screen {
                 .bounds(startX, btnY, btnW, btnH)
                 .build());
 
-        // Reset — только при Shift
+        // Reset only with Shift held.
         resetButton = Button.builder(
                         Component.translatable("aero_cam_sync.configuration.btn.reset"), btn -> {
                             resetCurrent();
@@ -171,8 +164,6 @@ public class ModConfigScreen extends Screen {
                 .build();
         addRenderableWidget(saveButton);
     }
-
-    // ── Snapshot / Restore / Reset ─────────────────────────────────────────────
 
     private void snapshotAll() {
         for (ConfigCategory cat : categories)
@@ -212,8 +203,6 @@ public class ModConfigScreen extends Screen {
         return false;
     }
 
-    // ── Render ─────────────────────────────────────────────────────────────────
-
     @Override
     public void render(GuiGraphics gfx, int mouseX, int mouseY, float delta) {
         renderBackground(gfx, mouseX, mouseY, delta);
@@ -222,13 +211,13 @@ public class ModConfigScreen extends Screen {
         gfx.fill(0, HEADER_HEIGHT - 1, this.width, HEADER_HEIGHT, 0x88AAAAAA);
         gfx.fill(0, this.height - FOOTER_HEIGHT, this.width, this.height - FOOTER_HEIGHT + 1, 0x88AAAAAA);
 
-        // Заголовок
+        // Title.
         gfx.drawCenteredString(this.font, this.title, this.width / 2, 7, 0xFFFFFF);
 
-        // Бейдж текущего режима справа (client-only / server-client), вся логика в ModeIndicator
+        // The current mode badge on the right; all the logic lives in ModeIndicator.
         ModeIndicator.render(gfx, this.width, 7, mouseX, mouseY);
 
-        // Обновить кнопки каждый фрейм
+        // Refresh the buttons every frame.
         if (resetButton != null) resetButton.active = hasShiftDown();
         if (saveButton  != null) {
             boolean violation = hasAnyHardViolation();
@@ -244,14 +233,12 @@ public class ModConfigScreen extends Screen {
     @Override
     public void onClose() {
         controller.restoreAll();
-        KeyBindings.saveToConfig();
-        KeyBindings.loadFromConfig();
         this.minecraft.setScreen(parent);
     }
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        // Сначала пробуем отдать активному KeyBindEntry
+        // Offer it to the active KeyBindEntry first.
         if (activeKeyBindEntry() != null) {
             boolean consumed = activeKeyBindEntry().onKeyPressed(keyCode, scanCode);
             if (consumed) return true;

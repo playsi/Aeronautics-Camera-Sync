@@ -17,25 +17,21 @@ import java.util.List;
 import static com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList.ENTRY_H;
 
 /**
- * Строка с ползунком и полем ввода числа. Работает и для {@code DoubleValue}, и для {@code IntValue}.
+ * A row with a slider and a numeric input. Works for both {@code DoubleValue} and {@code IntValue}.
  *
  * <ul>
- *   <li>sliderMin/sliderMax — диапазон ползунка (рамка желтеет, если вышли)</li>
- *   <li>hardMin/hardMax    — абсолютный предел (рамка краснеет, кнопка Save блокируется)</li>
- *   <li>step               — шаг ползунка</li>
+ *   <li>sliderMin/sliderMax: the slider range (the border turns yellow outside it)</li>
+ *   <li>hardMin/hardMax: the absolute limit (the border turns red and Save is blocked)</li>
+ *   <li>step: the slider step</li>
  * </ul>
  */
 public class SliderEntry extends ConfigOptionList.Entry {
-
-    // ── адаптер ──────────────────────────────────────────────────────────────
 
     private interface CfgAdapter {
         double get();
         void   set(double v);
         double getDefault();
     }
-
-    // ── поля ─────────────────────────────────────────────────────────────────
 
     private final CfgAdapter adapter;
     private final boolean    isInt;
@@ -52,9 +48,7 @@ public class SliderEntry extends ConfigOptionList.Entry {
     private boolean syncingFromSlider = false;
     private boolean syncingFromBox    = false;
 
-    // ── конструкторы ──────────────────────────────────────────────────────────
-
-    /** Для {@link ModConfigSpec.DoubleValue} */
+    /** For {@link ModConfigSpec.DoubleValue}. */
     public SliderEntry(String labelKey, String tooltipKey,
                        ModConfigSpec.DoubleValue config,
                        double sliderMin, double sliderMax, double step,
@@ -74,7 +68,7 @@ public class SliderEntry extends ConfigOptionList.Entry {
         buildWidgets();
     }
 
-    /** Для {@link ModConfigSpec.IntValue} */
+    /** For {@link ModConfigSpec.IntValue}. */
     public SliderEntry(String labelKey, String tooltipKey,
                        ModConfigSpec.IntValue config,
                        int sliderMin, int sliderMax, int step,
@@ -93,8 +87,6 @@ public class SliderEntry extends ConfigOptionList.Entry {
         this.snapshot     = currentValue;
         buildWidgets();
     }
-
-    // ── виджеты ──────────────────────────────────────────────────────────────
 
     private void buildWidgets() {
         slider = new SnapSlider(0, 0, 100, 20,
@@ -131,8 +123,6 @@ public class SliderEntry extends ConfigOptionList.Entry {
         });
     }
 
-    // ── render ────────────────────────────────────────────────────────────────
-
     @Override
     public void render(GuiGraphics gfx, int index, int top, int left, int width, int height,
                        int mouseX, int mouseY, boolean hovered, float delta) {
@@ -167,8 +157,6 @@ public class SliderEntry extends ConfigOptionList.Entry {
         if (currentValue < sliderMin || currentValue > sliderMax) return 0xFFFFAA00;
         return 0xFF555555;
     }
-
-    // ── форматирование ────────────────────────────────────────────────────────
 
     private String shortStr(double v) {
         if (isInt) return String.valueOf((int) Math.round(v));

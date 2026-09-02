@@ -11,7 +11,6 @@ import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.network.chat.Component;
-import net.neoforged.neoforge.common.ModConfigSpec;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.List;
@@ -19,16 +18,17 @@ import java.util.List;
 import static com.playsi.aero_cam_sync.client.config.ui.ConfigOptionList.ENTRY_H;
 
 /**
- * Строка для назначения клавиши.
+ * A row for assigning a key.
  * <p>
- * После нажатия на кнопку переходит в режим прослушивания.
- * Любое следующее нажатие клавиши или кнопки мыши (кроме Escape, который сбрасывает)
- * назначается как новый бинд.
+ * Clicking the button enters listening mode. The next key or mouse button pressed becomes the new
+ * bind, except Escape, which clears it.
+ *
+ * <p>The row edits the {@link KeyMapping} itself and stores nothing in the mod config: binds live
+ * in the vanilla options.txt, see {@link KeyBindings}.
  */
 public class KeyBindEntry extends ConfigOptionList.Entry {
 
     private final KeyMapping mapping;
-    private final ModConfigSpec.ConfigValue<String> config;
 
     private static final int BTN_W = 68;
     private static final int BTN_H = 18;
@@ -42,12 +42,10 @@ public class KeyBindEntry extends ConfigOptionList.Entry {
     private final Button bindButton;
 
     public KeyBindEntry(String labelKey, String tooltipKey,
-                        KeyMapping mapping,
-                        ModConfigSpec.ConfigValue<String> config) {
+                        KeyMapping mapping) {
         super(labelKey, tooltipKey);
         this.mapping    = mapping;
-        this.config     = config;
-        this.currentKey = parseKey(config.get());
+        this.currentKey = mapping.getKey();
         this.snapshot   = currentKey;
 
         Button btn = Button.builder(keyLabel(currentKey), b -> {
@@ -63,9 +61,6 @@ public class KeyBindEntry extends ConfigOptionList.Entry {
             bindButton.setTooltip(Tooltip.create(Component.translatable(tooltipKey)));
     }
 
-    // ── публичный API для ModConfigScreen ─────────────────────────────────────
-
-    /** Вызывается из {@code ModConfigScreen.keyPressed}. */
     public boolean onKeyPressed(int keyCode, int scanCode) {
         if (!listening) return false;
 
@@ -78,7 +73,6 @@ public class KeyBindEntry extends ConfigOptionList.Entry {
         return true;
     }
 
-    /** Вызывается из {@code ModConfigScreen.mouseClicked}. */
     public boolean onMouseClicked(int button) {
         if (!listening) return false;
         if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT || button == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
@@ -96,12 +90,9 @@ public class KeyBindEntry extends ConfigOptionList.Entry {
         bindButton.setMessage(keyLabel(currentKey));
     }
 
-    // ── внутренние утилиты ────────────────────────────────────────────────────
-
     private void setKey(InputConstants.Key key) {
         currentKey = key;
-        KeyBindings.applyKey(mapping, key.getName());
-        config.set(key.getName());
+        KeyBindings.applyKey(mapping, key);
 
         hasConflict = false;
         if (!key.equals(InputConstants.UNKNOWN)) {
@@ -121,18 +112,6 @@ public class KeyBindEntry extends ConfigOptionList.Entry {
             return Component.translatable("key.aero_cam_sync.none");
         return key.getDisplayName();
     }
-
-    private static InputConstants.Key parseKey(String keyName) {
-        if (keyName == null || keyName.isEmpty() || keyName.equals("key.unknown"))
-            return InputConstants.UNKNOWN;
-        try {
-            return InputConstants.getKey(keyName);
-        } catch (Exception e) {
-            return InputConstants.UNKNOWN;
-        }
-    }
-
-    // ── render ────────────────────────────────────────────────────────────────
 
     @Override
     public void render(GuiGraphics gfx, int index, int top, int left, int width, int height,
