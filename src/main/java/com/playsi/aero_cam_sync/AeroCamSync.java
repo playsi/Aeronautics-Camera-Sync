@@ -17,6 +17,12 @@ public class AeroCamSync {
 
     public AeroCamSync(IEventBus modEventBus) {
         modEventBus.addListener(NetworkHandler::register);
+
+        // The server half of the API test consumer, dev runs only. The gate is here rather than
+        // inside the class, so the built mod never loads it and /acsapi does not appear.
+        if (!net.neoforged.fml.loading.FMLLoader.isProduction()) {
+            com.playsi.aero_cam_sync.devtest.AcsApiServerTest.register();
+        }
     }
 
     @SubscribeEvent

@@ -1,4 +1,4 @@
-package com.playsi.aero_cam_sync.client.utils;
+package com.playsi.aero_cam_sync.client.sublevel;
 
 import dev.ryanhcode.sable.api.physics.mass.MassData;
 import dev.ryanhcode.sable.api.physics.mass.MassTracker;
@@ -15,13 +15,13 @@ import net.minecraft.server.level.ServerLevel;
 import java.util.UUID;
 
 /**
- * Отдаёт массу сабвела БЕЗ пересчёта: Sable ведёт массу инкрементально на сервере
- * ({@link ServerSubLevel#getMassTracker()}), её достаточно прочитать (O(1)).
+ * Serves a sub-level's mass WITHOUT recomputing it: Sable tracks mass incrementally on the server
+ * ({@link ServerSubLevel#getMassTracker()}) and it only needs reading, in O(1).
  *
- * <p>В одиночной игре читаем готовую массу прямо у серверного сабвела встроенного
- * сервера. На удалённом сервере серверного сабвела под рукой нет — там как запасной
- * вариант собираем массу {@link MassTracker#build} с РЕДКИМ кэшем (чтобы не было
- * ежесекундных фризов на больших конструкциях).</p>
+ * <p>In singleplayer the ready mass is read straight from the integrated server's sub-level. On a
+ * remote server there is no server sub-level to hand, so the fallback builds the mass with
+ * {@link MassTracker#build} behind an INFREQUENT cache, to avoid per-second freezes on large
+ * constructions.
  */
 public final class SubLevelMassProvider {
 
@@ -39,7 +39,6 @@ public final class SubLevelMassProvider {
         return builtMassCached(sl, bounds);
     }
 
-    /** Готовая масса из серверного сабвела (только встроенный сервер). */
     private static Double readyServerMass(ClientSubLevel sl) {
         Minecraft mc = Minecraft.getInstance();
         if (!mc.hasSingleplayerServer()) return null;
@@ -56,12 +55,12 @@ public final class SubLevelMassProvider {
                 if (md != null) return md.getMass();
             }
         } catch (Throwable ignored) {
-            // не блокируем — отдадим запасной вариант
+            // do not block: the fallback will be served
         }
         return null;
     }
 
-    /** Запасной вариант для удалённого сервера: редкий пересчёт. */
+    /** Fallback for a remote server: an infrequent recompute. */
     private static double builtMassCached(ClientSubLevel sl, BoundingBox3ic bounds) {
         UUID id = sl.getUniqueId();
         long now = System.currentTimeMillis();
