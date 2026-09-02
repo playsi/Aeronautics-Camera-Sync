@@ -19,14 +19,31 @@ sourceSets.main.resources {
 }
 
 repositories {
+    mavenCentral()
     maven { url = "https://maven.createmod.net" }
     maven { url = "https://api.modrinth.com/maven"}
     maven { url = "https://maven.ryanhcode.dev/releases"}
+    // MixinSquared: the only way to reach the handlers of a foreign mixin, needed by
+    // compat/CutThroughDistanceMixin.
+    maven { url = "https://maven.bawnorton.com/releases" }
 }
 
 base {
     archivesName = mod_id
 }
+
+// THE RELEASE ARTIFACT IS THE jarJar ONE. Only it carries META-INF/jarjar with MixinSquared,
+// and without that library compat/CutThroughDistanceMixin does not apply at all (see
+// BisectMixinPlugin), so the plain jar must never be published.
+//
+// It used to sit in build/libs beside the real one under a -slim classifier, and publishing the
+// wrong file was one click away. Now the plain jar goes to build/intermediates: still the input
+// jarJar depends on, but out of the release folder, leaving nothing to choose between.
+tasks.named('jar') {
+    archiveClassifier = 'nojarjar'
+    destinationDirectory = layout.buildDirectory.dir('intermediates')
+}
+tasks.named('jarJar') { archiveClassifier = '' }
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 runs {
@@ -34,11 +51,49 @@ runs {
         systemProperty 'forge.logging.markers', 'REGISTRIES'
         systemProperty 'forge.logging.console.level', 'debug'
 
+        // These pass diagnostic flags to the GAME's JVM, not Gradle's: a plain -D goes to the
+        // daemon and never reaches the mod.
+        //
+        //   ./gradlew runClient -PacsMixins=off      no ACS mixin applies
+        //   ./gradlew runClient -PacsMixins=client   client.* does not apply
+        //   ./gradlew runClient -PacsDebug=false     diagnostic mixins do not apply
+        //   ./gradlew runClient -PacsExport          export the transformed classes
+        //
+        // They exist for the case a gate in a method body cannot catch: when the effect comes from
+        // the mere FACT that a mixin applied (a foreign inject shifting, the handler order
+        // changing) rather than from the ACS logic. See BisectMixinPlugin.
+        if (project.hasProperty('acsMixins')) {
+            systemProperty 'aero_cam_sync.mixins', project.property('acsMixins')
+        }
+        if (project.hasProperty('acsDebug')) {
+            systemProperty 'aero_cam_sync.debug', project.property('acsDebug')
+        }
+        // The only way to tell "the injector applied" from "it missed silently" is to read the
+        // target's bytecode. Writes classes to runs/<run>/.mixin.out/class/. Needed for the Cut
+        // Through compat check in the release checklist, and it sits here for the same reason as
+        // the flags above.
+        if (project.hasProperty('acsExport')) {
+            systemProperty 'mixin.debug.export', 'true'
+        }
+
         modSource project.sourceSets.main
     }
 
+    // Two clients plus a server: tilt and pick have to be checked in multiplayer, and half the
+    // bugs are only visible from the second player's side. The usernames are explicit because a
+    // vanilla dev run passes no --username at all, so both clients would get the same name and the
+    // second could not join. Both names are in runs/server/ops.json.
     client {
         systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        arguments.addAll '--username', 'Dev'
+        jvmArguments.addAll '-Xmx6G'
+    }
+
+    client2 {
+        configure('client')
+        systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+        arguments.addAll '--username', 'Dev2'
+        jvmArguments.addAll '-Xmx6G'
     }
 
     server {
@@ -82,18 +137,51 @@ dependencies {
     compileOnly "maven.modrinth:create-aeronautics:${aeronautics_version}"
     runtimeOnly "maven.modrinth:create-aeronautics:${aeronautics_version}"
 
-    // Внутренние либы Create Aeronautics (в рантайме бандлятся через JarInJar внутри create-aeronautics).
-    // transitive = false: тянем только сами jar-ы (как раньше libs/*.jar), без их POM-зависимостей
+    // Create Aeronautics' inner libraries, bundled through JarInJar inside it at runtime.
+    // transitive = false: take the jars themselves, without their POM dependencies.
     compileOnly("dev.eriksonn.aeronautics:aeronautics-neoforge-${minecraft_version}:${aeronautics_bundle_version}") { transitive = false }
     compileOnly("dev.ryanhcode.offroad:offroad-neoforge-${minecraft_version}:${aeronautics_bundle_version}") { transitive = false }
     compileOnly("dev.simulated_team.simulated:simulated-neoforge-${minecraft_version}:${aeronautics_bundle_version}") { transitive = false }
 
     compileOnly("dev.ryanhcode.sable-companion:sable-companion-common-${minecraft_version}:${sable_companion_version}")
 
+    // MixinSquared: the @TargetHandler selector, for injecting into a foreign mixin's handlers.
+    // Exactly one file needs it, compat/CutThroughDistanceMixin, and a plain Mixin cannot get
+    // there: MixinExtras handlers appear in the target class later than injectors look for
+    // targets. It rides inside the ACS jar through JarInJar, with a version range so it does not
+    // clash with mods that ship it too.
+    compileOnly(annotationProcessor("com.github.bawnorton.mixinsquared:mixinsquared-common:${mixin_squared_version}"))
+    implementation(jarJar("com.github.bawnorton.mixinsquared:mixinsquared-neoforge:${mixin_squared_version}")) {
+        jarJar.ranged(it, "[${mixin_squared_version},)")
+    }
+
     api("dev.ryanhcode.sable:sable-neoforge-${minecraft_version}:$sable_version") {
         exclude group: "foundry.veil"
         exclude group: "com.tterrag.registrate"
     }
+
+    // --- Regression set for the dev run --------------------------------------------------
+    // Mods that catch the known classes of conflict, kept in the run so a regression shows up here
+    // rather than at a player. Each one earns its place:
+    //   cut-through   - edits GameRenderer#pick from the inside (MixinExtras). Checks that ACS
+    //                   no longer wipes out a foreign pick result.
+    //   puzzles-lib   - a required dependency of cut-through.
+    //   sound-physics - traces sound from BACKGROUND threads through world.clip(). Checks that new
+    //                   hooks stay out of a foreign thread.
+    //   first-person  - renders the first-person body itself, and depends on the ACS camera.
+    //   point-blank   - weapons with rays of their own (plus geckolib, its dependency).
+    // Create Simulated needs no entry: it arrives inside create-aeronautics through JarInJar.
+    //
+    // Bits'n'Tracks is deliberately NOT here: only 1.0.3.1-release works, with its own libraries
+    // (bits_n_bobs, struts, azimuth), and other versions do not start. It is kept as manual jars
+    // in runs/*/mods rather than a dependency, so Gradle cannot pull something "newer".
+    runtimeOnly "maven.modrinth:cut-through:${cut_through_version}"
+    runtimeOnly "maven.modrinth:puzzles-lib:${puzzles_lib_version}"
+    runtimeOnly "maven.modrinth:sound-physics-remastered:${sound_physics_version}"
+    runtimeOnly "maven.modrinth:${first_person_model_id}:${first_person_model_version}"
+    runtimeOnly "maven.modrinth:${point_blank_id}:${point_blank_version}"
+    runtimeOnly "maven.modrinth:${geckolib_id}:${geckolib_version}"
+    // -----------------------------------------------------------------------------------
 
 
 

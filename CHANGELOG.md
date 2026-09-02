@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.4.0
+
+### Added
+- Added a public API for other mods, and a documentation. See [API](https://github.com/playsi/Aeronautics_Camera_Sync/blob/master/docs/API.md).
+- Added tilt sources: another mod can decide the tilt itself and take the frame from ACS on the frames its scenario is actually about via API.
+- Added a `Suppress All` option. It forces the tilt off completely, including a tilt another mod is driving through the API. Use it to check whether the tilt is behind a problem at all.
+
+### Changed
+- Reworked how aiming is corrected. Rays now start from the tilted camera instead of the result being fixed up afterwards.
+- The tilt now comes from the sub-level's own orientation instead of an average of downward rays.
+- `Allow in 3rd person (Beta)` is gone from the settings. Third person is now available only from the API.
+- `Instantly forget Sublevel` is gone from the settings. Mod now always forgets a sub-level the moment the player steps off it.
+- `create:handheld_worldshaper` is no longer blacklisted by default.
+- `Enable Mod` and the tilt switch now only block ACS's own tilt; the API continues working.
+
+### Fixed
+- Finally fixed interact with throttle lever by its rod. (Issue #2) 😭
+- Fixed camera shaking when the player is standing on 2 or more sub-levels.
+- Fixed a bug that caused the slope to disappear on sub-levels smaller than a single block. (Issue #32)
+- Fixed wrong tilt next to a wall or a block at the player's feet on a steeply banked sub-level.
+- Fixed incorrect aiming for the Create zapper and worldshaper, rail outlines, honey glue, super glue, and the Create Simulated physics staff.
+- Fixed aiming and reach in third person.
+- Fixed the tilt being cancelled in third person whenever the camera came near a wall. The camera is still kept out of blocks.
+- Fixed entering a vehicle snapping the tilt to level instead of easing to it.
+- Fixed a keybind change not surviving a restart.
+- Fixed Bits 'n' Tracks visual bug. (Issue #30)
+
+### Note for mod developers
+- The API covers tilt sources, per-frame conditions, an eye offset for a body that pivots somewhere other than the feet, and a report of what each frame resolved to. See [API](https://github.com/playsi/Aeronautics_Camera_Sync/blob/master/docs/API.md).
+- Two diagnostic launch flags stay in release builds: `-Daero_cam_sync.debug=true` turns the diagnostics, and `-Daero_cam_sync.mixins=off|client|compat` drops the mixin set or one group of it.
+
 ## 1.3.6
 
 ### Fixed

@@ -19,6 +19,12 @@ Adds a dynamic camera tilt for the contraption from the Create Aeronautics mod
 [[mixins]]
 config="${mod_id}.mixins.json"
 
+# Diagnostics. The config is always registered, but its plugin (DebugMixinPlugin) applies no
+# mixins in a built mod, so they are effectively absent. -Daero_cam_sync.debug=true turns
+# them back on.
+[[mixins]]
+config="${mod_id}.debug.mixins.json"
+
 [[accessTransformers]]
 file="META-INF/accesstransformer.cfg"
 
