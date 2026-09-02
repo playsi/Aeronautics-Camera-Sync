@@ -1,17 +1,15 @@
 package com.playsi.aero_cam_sync;
 
 import com.playsi.aero_cam_sync.client.config.Config;
-import com.playsi.aero_cam_sync.network.Payload.TiltSyncPayload;
-import net.minecraft.client.Minecraft;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.joml.Quaternionf;
+import com.playsi.aero_cam_sync.client.tilt.ClientTiltAccess;
 
-import static com.playsi.aero_cam_sync.client.utils.CameraController.getSmoothedTilt;
-import static com.playsi.aero_cam_sync.client.utils.CameraController.shouldApplyTilt;
-
-
+/**
+ * Side state for the current session. State only: keep transmission out, or this common
+ * class becomes client-side by dependency.
+ *
+ * <p>{@code IGNORE_SERVER} is only read through {@code Config.isLoaded()}: on a dedicated server its
+ * spec is not registered and {@code .get()} throws before load (Issues #19, #33).
+ */
 public class SideManager {
 
     public enum Side {
@@ -23,15 +21,9 @@ public class SideManager {
     private static Side currentSide = Side.UNKNOWN;
 
     /**
-     * Значение {@link Config#IGNORE_SERVER}, зафиксированное на входе в мир, на всю сессию.
-     *
-     * <p>Опцию НЕЛЬЗЯ читать вживую. На сервере с модом переключение прямо в игре
-     * мгновенно уводит клиент в клиент-онли ветку ({@code AUTO_DISABLE_FOR_RAYCAST_ITEMS}
-     * выравнивает камеру, предсказание идёт без наклона) и одновременно глушит
-     * {@link #sendTiltToServer()} — а сервер продолжает крутить снаряды/взгляд по
-     * ПОСЛЕДНЕМУ полученному тилту, потому что {@link ServerTiltStore} никто не чистит.
-     * Клиент целится прямо, сервер стреляет под старым наклоном → траектории расходятся.
-     * Поэтому смена режима применяется только на следующем заходе в мир.</p>
+     * Latched on world entry. The option MUST NOT be read live: toggling it mid-game silences tilt
+     * transmission while the server keeps firing by the LAST tilt it received, since nothing clears
+     * {@link ServerTiltStore}.
      */
     private static boolean ignoreServerSession = false;
 
@@ -40,22 +32,18 @@ public class SideManager {
     }
 
     public static void setSide(Side side) {
-        if (Config.DEBUG_MESSAGES.get()) {
+        // Through the accessor: a direct .get() here throws before the config loads.
+        if (ClientTiltAccess.isDebugMessages()) {
             AeroCamSync.LOGGER.info("[AeroCamSync] SideManager -> {}", side);
         }
         currentSide = side;
     }
 
-    /** Зафиксированный на сессию режим «только клиент» (см. {@link #ignoreServerSession}). */
     public static boolean isIgnoreServerSession() {
         return ignoreServerSession;
     }
 
-    /**
-     * {@code true}, если игрок переключил «только на клиенте» уже в мире:
-     * настройка сохранена, но вступит в силу лишь при следующем заходе.
-     * Используется только для подсказки в экране настроек.
-     */
+    /** For the "rejoin needed" hint on the settings screen. */
     public static boolean isIgnoreServerPending() {
         return currentSide != Side.UNKNOWN
                 && Config.isLoaded()
@@ -78,64 +66,25 @@ public class SideManager {
         return currentSide == Side.CLIENT_SERVER;
     }
 
-    public static void sendTiltToServer() {
-        Minecraft mc = Minecraft.getInstance();
-        boolean enabled = shouldApplyTilt();
-        // Два НЕЗАВИСИМЫХ флага: поворот камеры наклоняет направление снаряда/взгляда,
-        // сдвиг позиции — точку вылета. Любой из них может работать в одиночку.
-        boolean rotActive = enabled && Config.MODIFY_CAMERA_ROT.get();
-        boolean posShift  = enabled && Config.MODIFY_CAMERA_POS.get();
-        boolean dropFromCamera = Config.DROP_FROM_CAMERA.get();
-        boolean present = rotActive || posShift;
-        Quaternionf q = present ? new Quaternionf(getSmoothedTilt()) : new Quaternionf();
-
-        if (mc.hasSingleplayerServer()) {
-            MinecraftServer server = mc.getSingleplayerServer();
-            if (server != null && mc.player != null) {
-                ServerPlayer sp = server.getPlayerList().getPlayer(mc.player.getUUID());
-                if (sp != null) {
-                    if (present) {
-                        ServerTiltStore.set(sp.getUUID(), q, rotActive, posShift, dropFromCamera);
-                    } else {
-                        ServerTiltStore.clear(sp.getUUID()); // раньше было set(..., null) → NPE
-                    }
-                }
-            }
-            return;
-        }
-
-        // Мультиплеер с модом на сервере
-        if (currentSide != Side.CLIENT_SERVER) return;
-        if (mc.getConnection() == null) return;
-
-        PacketDistributor.sendToServer(TiltSyncPayload.from(q, rotActive, posShift, dropFromCamera));
-    }
-
-    /**
-     * Начало сессии (вход в мир/на сервер): сбрасываем сторону и фиксируем
-     * «только на клиенте» на всю сессию.
-     */
+    /** Entering a world: reset the side and latch client-only for the session. */
     public static void beginSession() {
         currentSide = Side.UNKNOWN;
         latchIgnoreServer();
-        if (Config.isLoaded() && Config.DEBUG_MESSAGES.get()) {
+        if (ClientTiltAccess.isDebugMessages()) {
             AeroCamSync.LOGGER.info("[AeroCamSync] Session started, clientOnly latched = {}", ignoreServerSession);
         }
     }
 
     public static void reset() {
-        if (Config.isLoaded() && Config.DEBUG_MESSAGES.get()) {
+        if (ClientTiltAccess.isDebugMessages()) {
             AeroCamSync.LOGGER.info("[AeroCamSync] SideManager reset (disconnect)");
         }
         currentSide = Side.UNKNOWN;
-        // Вне мира держим фиксацию актуальной: подсказка «нужен перезаход» гаснет,
-        // а следующий заход всё равно перечитает конфиг в beginSession().
+        // Kept current outside a world so the "rejoin needed" hint clears.
         latchIgnoreServer();
     }
 
     private static void latchIgnoreServer() {
-        // Конфиг клиентский: на выделенном сервере его спека не зарегистрирована,
-        // а .get() до загрузки бросает IllegalStateException (Issue #19, #33).
         if (Config.isLoaded()) {
             ignoreServerSession = Config.IGNORE_SERVER.get();
         }

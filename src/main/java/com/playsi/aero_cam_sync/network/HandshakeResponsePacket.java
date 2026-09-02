@@ -25,11 +25,12 @@ public record HandshakeResponsePacket() implements CustomPacketPayload {
 
     public static void handle(HandshakeResponsePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            // Смена режима — первым: она и есть смысл пакета, и не должна зависеть от логов.
+            // The mode change comes first: it is what the packet is for and must not depend on
+            // logging.
             SideManager.setSide(SideManager.Side.CLIENT_SERVER);
 
-            // Пакет клиентский, конфиг тут по идее уже загружен, но читать его в сетевом
-            // обработчике без isLoaded() мы уже обжигались (Issue #19, #33) — страховка дешёвая.
+            // This packet is client-side and the config should already be loaded, but reading it
+            // in a network handler without isLoaded() has caused a crash before (Issues #19, #33).
             if (Config.isLoaded() && Config.DEBUG_MESSAGES.get()) {
                 AeroCamSync.LOGGER.info(
                         "[AeroCamSync] Server confirmed mod presence -> CLIENT_SERVER mode"
