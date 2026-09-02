@@ -1,6 +1,7 @@
 package com.playsi.aero_cam_sync.mixins;
 
 import com.playsi.aero_cam_sync.ServerTiltStore;
+import com.playsi.aero_cam_sync.TiltAccess;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -14,13 +15,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Выбрасывает предмет (клавиша Q) из наклонённой камеры, а не из головы хитбокса:
- * точка вылета поворачивается вокруг ног на тилт (как сдвиг камеры), а направление
- * броска наклоняется под поворот камеры. Гейтится отдельной настройкой
- * {@code DROP_FROM_CAMERA} (синхронизируется через {@link ServerTiltStore}).
+ * Drops an item (the Q key) from the tilted camera rather than the hitbox head: the launch point is
+ * rotated about the feet by the tilt, as the camera shift is, and the throw direction is tilted to
+ * match the camera rotation. Gated by its own {@code DROP_FROM_CAMERA} setting, synced through
+ * {@link ServerTiltStore}.
  *
- * <p>Только направленный бросок ({@code dropAround == false}); случайный разброс при
- * смерти не трогаем. Сущность создаётся на сервере, поэтому достаточно серверного тилта.</p>
+ * <p>Aimed throws only ({@code dropAround == false}); the random scatter on death is left alone.
+ * The entity is created on the server, so the server-side tilt is enough.
  */
 @Mixin(Player.class)
 public abstract class PlayerDropTiltMixin {
@@ -44,19 +45,15 @@ public abstract class PlayerDropTiltMixin {
         Quaternionf lookTilt = ServerTiltStore.getLookTilt(sp.getUUID());
         if (posTilt == null && lookTilt == null) return;
 
-        // Точка вылета — поворот вокруг ног (совпадает со сдвигом камеры).
+        // The launch point is the camera's: rotation about the feet plus a foreign source's eye
+        // offset. Shared formula (TiltAccess.cameraAnchoredPos): a local copy here already
+        // diverged from the pick once the correction gained its second term.
         if (posTilt != null) {
-            Vec3 feet = self.position();
-            Vec3 pos = item.position();
-            Vector3f rel = new Vector3f(
-                    (float) (pos.x - feet.x),
-                    (float) (pos.y - feet.y),
-                    (float) (pos.z - feet.z));
-            posTilt.transform(rel);
-            item.setPos(feet.x + rel.x, feet.y + rel.y, feet.z + rel.z);
+            Vec3 pos = TiltAccess.cameraAnchoredPos(sp, item.position(), posTilt);
+            item.setPos(pos.x, pos.y, pos.z);
         }
 
-        // Направление броска — наклон под поворот камеры.
+        // The throw direction, tilted to match the camera rotation.
         if (lookTilt != null) {
             Vec3 dm = item.getDeltaMovement();
             Vector3f v = new Vector3f((float) dm.x, (float) dm.y, (float) dm.z);

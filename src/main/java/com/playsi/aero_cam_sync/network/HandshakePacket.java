@@ -20,17 +20,16 @@ public record HandshakePacket() implements CustomPacketPayload {
         return TYPE;
     }
 
-    /** Вызывается на сервере когда пришёл пакет от клиента */
     public static void handle(HandshakePacket packet, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            // Ответ идёт ПЕРВЫМ и ничем не обусловлен: это протокол. Всё, что способно
-            // бросить (логи, конфиг), — строго после. Иначе исключение обрывает рукопожатие,
-            // ответ до клиента не доходит и он навсегда остаётся в CLIENT_ONLY.
+            // The reply goes FIRST and is unconditional: this is the protocol. Anything that can
+            // throw (logs, config) comes strictly after, or an exception cuts the handshake short,
+            // the reply never reaches the client and it stays CLIENT_ONLY forever.
             ctx.reply(new HandshakeResponsePacket());
 
-            // ВАЖНО: этот обработчик выполняется на СЕРВЕРЕ, а Config — КЛИЕНТСКИЙ
-            // (ModConfig.Type.CLIENT, регистрируется только в @Mod(dist = Dist.CLIENT)).
-            // На выделенном сервере спека не зарегистрирована
+            // NOTE: this handler runs on the SERVER while Config is CLIENT-side
+            // (ModConfig.Type.CLIENT, registered only under @Mod(dist = Dist.CLIENT)), so on a
+            // dedicated server its spec is not registered.
             AeroCamSync.LOGGER.debug(
                     "[AeroCamSync] Handshake received from: {}",
                     ctx.player().getName().getString()

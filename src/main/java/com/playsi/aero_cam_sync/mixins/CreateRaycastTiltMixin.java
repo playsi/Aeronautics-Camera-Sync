@@ -9,58 +9,30 @@ import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 /**
- * Приводит лучи Create ({@link RaycastHelper}) в соответствие с наклонённой камерой.
+ * Brings Create's rays ({@link RaycastHelper}) into line with the tilted camera.
  *
- * <p>Create считает свой луч от {@code getEyePosition()} и сырых {@code xRot/yRot}
- * (метод {@code getTraceTarget}), а не от нашей камеры. Поэтому при наклоне камеры
- * луч Create расходится с перекрестием: например, обработчик редстоун-линка
- * ({@code LinkHandler.onBlockActivated} → {@code rayTraceRange} → {@code LinkBehaviour.testHit})
- * не попадает в слот частоты, не отменяет событие — и вместо установки частоты ставится
- * блок «сверху». Срабатывает и для одного только поворота, и для одного только сдвига.</p>
+ * <p>Create computes its ray from {@code getEyePosition()} and raw {@code xRot/yRot} rather than
+ * from the ACS camera, so under tilt its ray diverges from the crosshair: the redstone link handler,
+ * for instance, misses the frequency slot, does not cancel the event, and a block is placed on top
+ * instead of the frequency being set. It happens with rotation alone and with the shift alone.
  *
- * <p>Чиним обе составляющие, как и для остальных взаимодействий: НАЧАЛО луча сдвигаем в
- * позицию камеры (по {@code MODIFY_CAMERA_POS}), а НАПРАВЛЕНИЕ наклоняем (по
- * {@code MODIFY_CAMERA_ROT}). Общий миксин — работает на клиенте (подсказка/предсказание)
- * и на сервере (событие right-click приходит с обеих сторон). Когда наклона нет
- * ({@link TiltAccess} вернул null) — поведение ванильное.</p>
+ * <p>Both halves are fixed as everywhere else: the ORIGIN is moved to the camera position and the
+ * DIRECTION is tilted. A common mixin, working on the client (hint and prediction) and on the
+ * server (the right-click event arrives on both sides). With no tilt ({@link TiltAccess} returned
+ * null) the behaviour is vanilla.
  */
 @Mixin(value = RaycastHelper.class, remap = false)
 public class CreateRaycastTiltMixin {
 
-    /** Начало луча → позиция камеры (поворот точки глаза вокруг ног, как сдвиг камеры). */
-    @Redirect(
-            method = "rayTraceRange",
-            at = @At(value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/player/Player;getEyePosition()Lnet/minecraft/world/phys/Vec3;",
-                    remap = true)
-    )
-    private static Vec3 aero$cameraOrigin(Player player) {
-        Vec3 eye = player.getEyePosition();
+    // The ray ORIGIN is no longer fixed here: rayTraceRange ends in a vanilla level.clip() whose
+    // origin equals player.getEyePosition(), which is exactly what the net (ClipNetMixin) should
+    // take. The direction stays, because getTraceTarget computes it from RAW getXRot/getYRot and
+    // the net never sees that.
 
-        // На клиенте начало клипа уже сдвигает ClipShifter (SableCompatClipMixin) —
-        // если сдвинуть и здесь, будет ДВОЙНОЙ сдвиг: клиент промахнётся мимо слота,
-        // предскажет установку блока (фантом сверху), а сервер попадёт и отменит его.
-        // Поэтому сдвигаем только на сервере, где ClipShifter не работает.
-        if (player.level().isClientSide) return eye;
-
-        Quaternionf posTilt = TiltAccess.getPosTilt(player);
-        if (posTilt == null) return eye;
-
-        // Та же точка сдвига, что у камеры (тилт уже уменьшен по близости к стене).
-        Vec3 feet = player.position();
-        Vector3f rel = new Vector3f(
-                (float) (eye.x - feet.x),
-                (float) (eye.y - feet.y),
-                (float) (eye.z - feet.z));
-        posTilt.transform(rel);
-        return new Vec3(feet.x + rel.x, feet.y + rel.y, feet.z + rel.z);
-    }
-
-    /** Направление луча → наклон под камеру (вокруг начала {@code origin}). */
+    /** Ray direction, tilted to match the camera (about the given {@code origin}). */
     @Inject(method = "getTraceTarget", at = @At("RETURN"), cancellable = true)
     private static void aero$cameraDirection(Player player, double range, Vec3 origin,
                                              CallbackInfoReturnable<Vec3> cir) {

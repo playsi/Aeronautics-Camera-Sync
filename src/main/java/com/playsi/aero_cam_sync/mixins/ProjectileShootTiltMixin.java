@@ -1,6 +1,7 @@
 package com.playsi.aero_cam_sync.mixins;
 
 import com.playsi.aero_cam_sync.ServerTiltStore;
+import com.playsi.aero_cam_sync.TiltAccess;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -14,14 +15,13 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
- * Наклоняет направление вылета снарядов (снежки, яйца, тридент и т.п.) под наклон
- * камеры игрока. {@code shootFromRotation} считает направление напрямую из
- * {@code xRot/yRot}, минуя {@code getViewVector}, поэтому серверный наклон взгляда
- * ({@link ServerEntityLookMixin}) сюда не достаёт.
+ * Tilts the launch direction of projectiles (snowballs, eggs, tridents) to match the player's
+ * camera tilt. {@code shootFromRotation} computes the direction straight from {@code xRot/yRot},
+ * bypassing {@code getViewVector}, so the look tilt does not reach it.
  *
- * <p>Снаряд игрока создаётся на сервере, поэтому достаточно серверного тилта из
- * {@link ServerTiltStore}. Для не-игроков (раздатчики, мобы) тилта нет — поведение
- * не меняется.</p>
+ * <p>A player's projectile is created on the server, so the server-side tilt from
+ * {@link ServerTiltStore} is enough. Non-players (dispensers, mobs) have no tilt and are
+ * unaffected.
  */
 @Mixin(Projectile.class)
 public abstract class ProjectileShootTiltMixin {
@@ -33,38 +33,34 @@ public abstract class ProjectileShootTiltMixin {
                                             float velocity, float inaccuracy, CallbackInfo ci) {
         if (!(shooter instanceof ServerPlayer sp)) return;
 
-        // Два независимых флага: поворот камеры (направление) и сдвиг позиции (точка вылета).
+        // Two independent flags: camera rotation (direction) and position shift (launch point).
         Quaternionf lookTilt = ServerTiltStore.getLookTilt(sp.getUUID());
         Quaternionf posTilt  = ServerTiltStore.getPosTilt(sp.getUUID());
-        if (lookTilt == null && posTilt == null) return; // нечего менять — пусть работает ваниль
+        if (lookTilt == null && posTilt == null) return; // nothing to change, let vanilla run
 
         Projectile self = (Projectile) (Object) this;
 
-        // Спавним снаряд из «сдвинутой» точки камеры (вокруг ног поворачиваем точку
-        // вылета на тот же тилт), чтобы он визуально летел из прицела, а не сбоку.
+        // Spawn the projectile from the shifted camera point, so it visibly leaves the crosshair
+        // rather than the side. The formula is shared (TiltAccess.cameraAnchoredPos): rotation
+        // about the feet PLUS a foreign source's eye offset. A local copy here already cost a bug -
+        // projectiles flew from the vanilla point while the pick left from the shifted one.
         if (posTilt != null) {
-            Vec3 feet = shooter.position();
-            Vec3 spawn = self.position();
-            Vector3f rel = new Vector3f(
-                    (float) (spawn.x - feet.x),
-                    (float) (spawn.y - feet.y),
-                    (float) (spawn.z - feet.z));
-            posTilt.transform(rel);
-            self.setPos(feet.x + rel.x, feet.y + rel.y, feet.z + rel.z);
+            Vec3 spawn = TiltAccess.cameraAnchoredPos(sp, self.position(), posTilt);
+            self.setPos(spawn.x, spawn.y, spawn.z);
         }
 
-        // Ванильное направление из углов поворота (как в Projectile#shootFromRotation).
+        // The vanilla direction from the rotation angles, as in Projectile#shootFromRotation.
         float f  = -Mth.sin(y * DEG_TO_RAD) * Mth.cos(x * DEG_TO_RAD);
         float f1 = -Mth.sin((x + z) * DEG_TO_RAD);
         float f2 =  Mth.cos(y * DEG_TO_RAD) * Mth.cos(x * DEG_TO_RAD);
 
         Vector3f dir = new Vector3f(f, f1, f2);
-        // Направление наклоняем только если включён поворот камеры.
+        // The direction is tilted only when camera rotation is on.
         if (lookTilt != null) lookTilt.transform(dir);
 
         self.shoot(dir.x, dir.y, dir.z, velocity, inaccuracy);
 
-        // Унаследованную скорость стрелка добавляем БЕЗ наклона (как ваниль).
+        // The shooter's inherited velocity is added WITHOUT the tilt, as vanilla does.
         Vec3 inherited = shooter.getKnownMovement();
         self.setDeltaMovement(self.getDeltaMovement()
                 .add(inherited.x, shooter.onGround() ? 0.0 : inherited.y, inherited.z));
